@@ -12,6 +12,10 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <link rel="stylesheet" href="style.css" />
+  <script>
+    // 밝기·글자 크기는 화면을 그리기 전에 적용 (깜빡임 방지). 이 폰의 사정이라 백업에 넣지 않는다
+    try { const r = document.documentElement; r.dataset.theme = localStorage.getItem('theme') || 'auto'; r.dataset.size = localStorage.getItem('size') || 'm'; } catch {}
+  </script>
 </head>
 <body>
   <main id="app" aria-live="polite"></main>

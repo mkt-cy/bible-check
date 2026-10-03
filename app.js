@@ -9,6 +9,9 @@ const MODES = {
   spread: { name: '남은 기간에 나눠 얹기', desc: '오늘 말씀에 지난 말씀 몇 장씩을 덤으로 더해요' },
 };
 
+const THEMES = { auto: '자동', light: '밝게', dark: '어둡게' };
+const SIZES = { m: '보통', l: '크게', xl: '아주 크게' };
+
 const UA = navigator.userAgent;
 const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
 const IS_IOS = /iphone|ipad|ipod/i.test(UA);
@@ -21,6 +24,8 @@ const S = {
   chapterDay: new Map(), // "ROM.1" → 읽기표 일차
   recs: new Map(), // 일차 → 기록
   mode: null,
+  name: '',
+  onboard: null, // 처음 열 때 환영 흐름: { step: 1|2|3, past: bool }
   choosing: false, // 이어가기 방식 다시 고르는 중
   expanded: new Set(), // 장별 체크를 펼친 카드
   justDone: null, // '밀린 것부터'에서 방금 끝낸 날 — 연타로 다음 날까지 체크되지 않게 잠시 붙잡아 둔다
@@ -32,6 +37,20 @@ const S = {
 };
 
 const $ = (sel) => document.querySelector(sel);
+
+/** 밝기·글자 크기: <html data-theme / data-size> + 상태 표시줄 색 */
+function applyLook() {
+  const r = document.documentElement;
+  r.dataset.theme ||= 'auto';
+  r.dataset.size ||= 'm';
+  const dark = r.dataset.theme === 'dark' || (r.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#141f27' : '#f7f0e6');
+}
+function setLook(key, value) {
+  document.documentElement.dataset[key === 'theme' ? 'theme' : 'size'] = value;
+  try { localStorage.setItem(key, value); } catch {}
+  applyLook();
+}
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const day = (n) => S.plan.days[n - 1];
 const label = (d) => dayLabel(d, S.byCode);
@@ -45,6 +64,8 @@ function longDate(key) {
 // ── 시작 ──
 
 async function boot() {
+  applyLook();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyLook);
   S.storage = await store.init({ onBlocked: () => showFatal('앱이 다른 곳에도 열려 있어요. 모두 닫았다가 다시 열어 주세요.') });
   if (S.storage.reason === 'upgrade') return showFatal('기록을 여는 중 문제가 생겼어요. 앱을 완전히 닫았다가 다시 열어 주세요. 기록은 지워지지 않았어요.');
 
@@ -58,7 +79,9 @@ async function boot() {
   plan.days.forEach((d) => dayChapters(d).forEach((c) => S.chapterDay.set(c, d.n)));
   S.mode = await store.getSetting('catchupMode', null);
   S.lastExport = await store.getSetting('lastExport', null);
+  S.name = await store.getSetting('userName', '');
   await loadRecords();
+  if (!S.name) S.onboard = { step: 1, past: false };
   render();
   if (location.hash === '#/plan') document.querySelector('.week.current')?.scrollIntoView({ block: 'start' });
 
@@ -121,6 +144,16 @@ const recOf = (n) => S.recs.get(n) ?? newRecord(S.plan.id, n);
 
 function render() {
   if (!S.plan) return;
+  document.body.classList.toggle('onboarding', !!S.onboard);
+  if (S.onboard) {
+    // 앱을 잠깐 내렸다 와도(다시 그려도) 적던 이름·고른 날이 남게
+    const typed = $('.onboard .name')?.value;
+    const picked = $('.onboard [data-act="lastDay"]')?.value;
+    $('#app').innerHTML = viewOnboard();
+    if (typed != null && $('.onboard .name')) $('.onboard .name').value = typed;
+    if (picked && $('.onboard [data-act="lastDay"]')) $('.onboard [data-act="lastDay"]').value = picked;
+    return;
+  }
   const route = location.hash.replace('#/', '') || 'home';
   document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === route));
   const view = { home: viewHome, plan: viewPlan, settings: viewSettings }[route] ?? viewHome;
@@ -133,11 +166,12 @@ function render() {
 /** 다시 그려도 쓰던 묵상 글과 커서가 날아가지 않게 */
 function preservingNote(draw) {
   const el = document.activeElement;
-  const typing = el?.dataset?.act === 'note' ? { n: el.dataset.n, inSheet: !!el.closest('.sheet'), value: el.value, at: el.selectionStart } : null;
+  const act = el?.dataset?.act;
+  const typing = act === 'note' || act === 'name' ? { act, n: el.dataset.n, inSheet: !!el.closest('.sheet'), value: el.value, at: el.selectionStart } : null;
   draw();
   if (!typing) return;
   const scope = typing.inSheet ? '.sheet' : '#app';
-  const again = document.querySelector(`${scope} .note[data-n="${typing.n}"]`);
+  const again = document.querySelector(typing.act === 'name' ? `${scope} .name` : `${scope} .note[data-n="${typing.n}"]`);
   if (!again) return;
   again.value = typing.value;
   again.focus({ preventScroll: true });
@@ -186,7 +220,8 @@ function viewHome() {
   const week = weeks(S.plan)[weekOf(loc.day.n) - 1];
   return `
     <header class="top">
-      <p class="eyebrow">${esc(S.plan.title)}</p>
+      <p class="eyebrow">${esc(S.name)}님, 안녕하세요!</p>
+      <p class="greet">${greeting(today)}</p>
       <h1>${longDate(today)}</h1>
       <p class="sub">${sub}</p>
     </header>
@@ -196,9 +231,32 @@ function viewHome() {
       <h3>이번 주</h3>
       <div class="strip">${week.days.map((d) => stripCell(d, today)).join('')}</div>
     </section>
-    <p class="stats">이번 달 <b>${st.daysThisMonth}</b>일 읽었어요 · 지금까지 <b>${st.chapters.toLocaleString()}</b>장</p>
+    ${statsLine(st)}
     <div class="bar" role="img" aria-label="성경 전체 ${st.chapters}장 읽음"><span style="width:${(st.chapters / 1189) * 100}%"></span></div>
   `;
+}
+
+/** 인사 한마디 — 날마다 바뀌고, 같은 날엔 몇 번을 열어도 같다. 재촉하는 말은 넣지 않는다 */
+const GREETINGS = [
+  '오늘은 좋은 하루예요.',
+  '오늘도 말씀과 함께 시작해요.',
+  '오늘 하루도 평안하세요.',
+  '천천히, 한 장씩 가요.',
+  '오늘도 만나서 반가워요.',
+  '말씀 앞에 잠시 머무는 시간이에요.',
+  '오늘도 함께해서 기뻐요.',
+];
+function greeting(key) {
+  const days = Math.round(Date.UTC(...key.split('-').map((v, i) => (i === 1 ? v - 1 : +v))) / 86400000);
+  return GREETINGS[days % GREETINGS.length];
+}
+
+/** 줄지 않는 숫자만, 0은 보여 주지 않는다 (월초·처음 쓰는 사람에게 '0일'은 추궁처럼 읽힌다) */
+function statsLine(st) {
+  const parts = [];
+  if (st.daysThisMonth) parts.push(`이번 달 <b>${st.daysThisMonth}</b>일 읽었어요`);
+  if (st.chapters) parts.push(`지금까지 <b>${st.chapters.toLocaleString()}</b>장`);
+  return parts.length ? `<p class="stats">${parts.join(' · ')}</p>` : '<p class="stats">성경 전체 <b>1,189</b>장, 한 장씩 함께 가요</p>';
 }
 
 /** 기록이 엉뚱한 곳에 쌓이지 않게 하는 안내 */
@@ -224,7 +282,7 @@ function dayCard(d, kicker) {
     <article class="card day ${state}">
       <p class="kicker">${kicker}</p>
       <h2>${label(d)}</h2>
-      <p class="meta">${shortDate(d.date)} (${weekdayOf(d.date)}) · ${total}장${progress}</p>
+      <p class="meta">${kicker.includes(shortDate(d.date)) ? '' : `${shortDate(d.date)} (${weekdayOf(d.date)}) · `}${total}장${progress}</p>
       <button class="primary ${state === 'done' ? 'is-done' : ''}" data-act="day" data-n="${d.n}">
         ${state === 'done' ? '✓ 다 읽었어요' : '다 읽었어요'}
       </button>
@@ -264,10 +322,20 @@ function extraCard(today) {
   const { perDay, capped, todayExtra, readToday } = spreadPlan(S.plan, S.recs, today);
   const list = [...readToday, ...todayExtra];
   if (!list.length) return '';
-  const chips = list
-    .map((c) => {
-      const on = S.recs.get(S.chapterDay.get(c))?.chapters[c];
-      return `<button class="chip wide ${on ? 'on' : ''}" data-act="ch" data-c="${c}" aria-pressed="${!!on}">${chapterLabel(c, S.byCode)}</button>`;
+  // 장별 체크와 같은 모양: 책 이름 아래 숫자 칩 (책이 바뀌면 묶음도 바뀜)
+  const groups = [];
+  for (const c of list) {
+    const book = c.split('.')[0];
+    if (groups.at(-1)?.book !== book) groups.push({ book, cs: [] });
+    groups.at(-1).cs.push(c);
+  }
+  const chips = groups
+    .map(({ book, cs }) => {
+      const nums = cs.map((c) => {
+        const on = S.recs.get(S.chapterDay.get(c))?.chapters[c];
+        return `<button class="chip ${on ? 'on' : ''}" data-act="ch" data-c="${c}" aria-pressed="${!!on}" aria-label="${chapterLabel(c, S.byCode)}">${c.split('.')[1]}</button>`;
+      }).join('');
+      return `<div class="chgroup"><span class="book">${S.byCode.get(book).name}</span><div class="chips">${nums}</div></div>`;
     })
     .join('');
   const meta = capped
@@ -278,7 +346,7 @@ function extraCard(today) {
       <p class="kicker">덤으로 읽기</p>
       <h2>${todayExtra.length ? '지난 말씀 조금 더' : '오늘 덤은 다 읽었어요 ✓'}</h2>
       <p class="meta">${meta}</p>
-      <div class="chips">${chips}</div>
+      <div class="chapters">${chips}</div>
     </article>`;
 }
 
@@ -378,6 +446,20 @@ function viewSettings() {
     ${notices()}
 
     <section class="card">
+      <h3>이름</h3>
+      <input class="note name" type="text" maxlength="20" data-act="name" value="${esc(S.name)}" autocomplete="nickname" enterkeyhint="done" />
+      <button class="secondary save-name" data-act="saveName">이름 바꾸기</button>
+    </section>
+
+    <section class="card">
+      <h3>화면</h3>
+      <p class="seg-label">밝기</p>
+      <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
+      <p class="seg-label">글자 크기</p>
+      <div class="seg" role="group" aria-label="글자 크기">${segButtons('size', SIZES)}</div>
+    </section>
+
+    <section class="card">
       <h3>지난 말씀 이어가기</h3>
       ${modeOptions()}
       <p class="hint">통독 기간이 끝난 뒤에는 이어 읽기만 보여요.</p>
@@ -397,6 +479,88 @@ function viewSettings() {
 
     <p class="foot">${esc(S.plan.title)} · ${S.plan.days.length}일 · 1,189장</p>
   `;
+}
+
+// ── 처음 열 때 (환영 → 이름 → 어디까지) ──
+
+/** 이미 시작된 통독에 처음 들어온 사람만 '어디까지' 단계를 거친다 */
+function needsStartPoint() {
+  const loc = locate(S.plan, dateKey());
+  return loc.phase === 'during' && loc.day.n > 1 && S.recs.size === 0;
+}
+
+function viewOnboard() {
+  const o = S.onboard;
+  const dots = `<p class="ob-dots" aria-hidden="true">${[1, 2, needsStartPoint() ? 3 : 0].filter(Boolean).map((k) => `<span class="${k === o.step ? 'on' : ''}"></span>`).join('')}</p>`;
+  if (o.step === 1) {
+    return `
+      <section class="onboard">
+        ${dots}
+        <p class="eyebrow">${esc(S.plan.title)}</p>
+        <h1>환영해요</h1>
+        <ul class="ob-points">
+          <li>매일 <b>오늘 말씀</b>을 읽고 탭 한 번으로 체크해요</li>
+          <li>밀려도 괜찮아요. <b>다음 읽을 곳</b>만 알려 드려요</li>
+          <li>기록은 <b>이 폰에만</b> 저장되고, 누구에게도 보내지지 않아요</li>
+        </ul>
+        ${notices()}
+        <button class="primary" data-act="obNext">시작하기</button>
+      </section>`;
+  }
+  if (o.step === 2) {
+    return `
+      <section class="onboard">
+        ${dots}
+        <h1>뭐라고 불러 드릴까요?</h1>
+        <p class="meta">이름이나 별명을 적어 주세요. 이 폰에만 저장돼요.</p>
+        <input class="note name" type="text" maxlength="20" data-act="name" value="${esc(S.name)}" placeholder="이름" autocomplete="nickname" enterkeyhint="next" />
+        <button class="primary" data-act="obName">다음</button>
+      </section>`;
+  }
+  const today = dateKey();
+  const past = S.plan.days.filter((d) => d.date < today).reverse();
+  return `
+    <section class="onboard">
+      ${dots}
+      <h1>${esc(S.name)}님, 어디까지 읽으셨어요?</h1>
+      <p class="meta">통독은 ${longDate(S.plan.start)}에 시작해서 오늘이 ${locate(S.plan, today).day.n}일째예요.</p>
+      <button class="option" data-act="obToday"><b>오늘부터 시작할게요</b><small>지난 말씀은 전체 표에서 생각날 때 채워요</small></button>
+      <button class="option ${o.past ? 'on' : ''}" data-act="obPast" aria-expanded="${o.past}"><b>이미 읽고 있었어요</b><small>마지막으로 읽은 날까지 한 번에 체크해요</small></button>
+      ${o.past ? `
+        <label class="ob-pick">마지막으로 읽은 날
+          <select class="note" data-act="lastDay">${past.map((d) => `<option value="${d.n}">${shortDate(d.date)} (${weekdayOf(d.date)}) · ${label(d)}</option>`).join('')}</select>
+        </label>
+        <button class="primary" data-act="obFill">여기까지 읽었어요</button>` : ''}
+      <p class="hint">다른 폰에서 쓰던 기록이 있다면 <label class="link">백업 가져오기<input type="file" accept="application/json,.json" data-act="import" hidden /></label></p>
+    </section>`;
+}
+
+async function finishOnboard(msg) {
+  S.onboard = null;
+  if (location.hash && location.hash !== '#/') location.hash = '#/';
+  else render();
+  window.scrollTo(0, 0);
+  if (msg) toast(msg);
+}
+
+/** 이름 저장 — 비었으면 저장하지 않고 입력란으로 돌려보낸다 */
+async function saveName(input) {
+  const value = input.value.trim().replace(/\s+/g, ' ');
+  if (!value) {
+    toast('이름을 적어 주세요');
+    input.focus();
+    return false;
+  }
+  await store.setSetting('userName', value);
+  S.name = value;
+  return true;
+}
+
+function segButtons(key, options) {
+  const cur = document.documentElement.dataset[key];
+  return Object.entries(options)
+    .map(([v, name]) => `<button class="${cur === v ? 'on' : ''}" data-act="look" data-key="${key}" data-value="${v}" aria-pressed="${cur === v}">${name}</button>`)
+    .join('');
 }
 
 // ── 하루 상세 (아래에서 올라오는 시트) ──
@@ -436,8 +600,7 @@ function renderSheet() {
     ${chapterGrid(d)}
     <button class="primary ${state === 'done' ? 'is-done' : ''}" data-act="day" data-n="${d.n}">${state === 'done' ? '✓ 다 읽었어요' : '다 읽었어요'}</button>
     ${state !== 'none' ? noteField(d.n, rec.note) : ''}
-    ${fillable ? `<button class="secondary fill" data-act="fill" data-n="${d.n}">여기까지 읽었어요</button>
-      <p class="hint">첫날부터 이 날까지 체크 안 된 날을 한 번에 채워요.</p>` : ''}
+    ${fillable ? `<button class="link fill" data-act="fill" data-n="${d.n}">첫날부터 이 날까지 모두 읽었어요</button>` : ''}
     <button class="link close" data-close>닫기</button>`;
 }
 
@@ -467,16 +630,53 @@ function flushNote() {
 // ── 동작 ──
 
 const actions = {
+  obNext() {
+    S.onboard.step = 2;
+    render();
+    $('.onboard .name')?.focus();
+  },
+  async obName() {
+    if (!(await saveName($('.onboard .name')))) return;
+    if (!needsStartPoint()) return finishOnboard(`${S.name}님, 반가워요`);
+    S.onboard.step = 3;
+    render();
+  },
+  async obToday() {
+    S.mode = 'today'; // 중간에 들어온 사람에게 '밀렸다'는 카드부터 보여 주지 않는다
+    await store.setSetting('catchupMode', S.mode);
+    finishOnboard(`${S.name}님, 반가워요`);
+  },
+  obPast() {
+    S.onboard.past = !S.onboard.past;
+    render();
+  },
+  async obFill() {
+    const d = day(+$('.onboard [data-act="lastDay"]').value);
+    // 실제 읽은 날은 모르므로 계획 날짜로 남긴다 ('여기까지 읽었어요'와 같은 방식)
+    await changeMany(daysToFill(S.plan, S.recs, d.n).map((x) => ({ day: x.n, fn: (rec) => setDayDone(rec, x, true, x.date) })));
+    finishOnboard(`${shortDate(d.date)}까지 채웠어요`);
+  },
+  async saveName() {
+    if (await saveName($('.name'))) toast('이름을 바꿨어요');
+  },
   async day(el) {
     const d = day(+el.dataset.n);
     const done = dayState(d, S.recs.get(d.n)) === 'done';
     if (done && !confirm('이 날 체크를 모두 지울까요?')) return;
     S.justDone = done ? null : d.n;
     await change(d.n, (rec) => setDayDone(rec, d, !done, dateKey()));
+    if (!done) celebrate(d.n);
   },
   async ch(el) {
     const c = el.dataset.c;
-    await change(S.chapterDay.get(c), (rec) => toggleChapter(rec, c, dateKey()));
+    const n = S.chapterDay.get(c);
+    const was = dayState(day(n), S.recs.get(n));
+    await change(n, (rec) => toggleChapter(rec, c, dateKey()));
+    if (was !== 'done' && dayState(day(n), S.recs.get(n)) === 'done') celebrate(n);
+  },
+  look(el) {
+    setLook(el.dataset.key, el.dataset.value);
+    render();
   },
   async fill(el) {
     const d = day(+el.dataset.n);
@@ -561,6 +761,7 @@ document.addEventListener('change', async (e) => {
       const n = await store.importData(data);
       S.mode = await store.getSetting('catchupMode', null);
       await loadRecords();
+      if (S.onboard) return finishOnboard(n ? `${n}일치 기록을 반영했어요` : '이미 다 들어 있는 기록이에요');
       render();
       toast(n ? `${n}일치 기록을 반영했어요` : '이미 다 들어 있는 기록이에요');
     } catch (err) {
@@ -574,7 +775,121 @@ document.addEventListener('change', async (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && S.sheetDay) userCloseSheet();
   if (e.key === 'Enter' && e.target.dataset?.act === 'note') e.target.blur();
+  if (e.key === 'Enter' && e.target.dataset?.act === 'name' && !e.isComposing) {
+    e.preventDefault();
+    actions[S.onboard ? 'obName' : 'saveName']().catch(() => toast('저장되지 않았어요. 다시 눌러 주세요.'));
+  }
 });
+
+/** 하루를 다 읽은 순간: 버튼이 살짝 튀고, 안드로이드는 짧게 진동 */
+function celebrate(n) {
+  const btns = [...document.querySelectorAll(`.primary[data-n="${n}"]`)];
+  const visible = btns.filter((b) => b.offsetParent).at(-1); // 시트가 열려 있으면 시트 쪽 버튼
+  btns.forEach((b) => {
+    b.classList.remove('pop');
+    void b.offsetWidth;
+    b.classList.add('pop');
+  });
+  if (visible) confetti(visible);
+  navigator.vibrate?.([12, 60, 18]);
+}
+
+/**
+ * 축하: ① 가운데서 큰 폭죽 ② 버튼 양 끝에서 파티 폭죽(빵빠레)이 안쪽 위로 ③ 리본·반짝이 ④ 🎉 하나가 떠오름
+ * 모두 카드 둘레 안에서 퍼졌다 떨어진다. 움직임 줄이기 설정이면 생략
+ */
+function confetti(btn) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !Element.prototype.animate) return;
+  const r = btn.getBoundingClientRect();
+  const css = getComputedStyle(document.documentElement);
+  const colors = ['--confetti-1', '--confetti-2', '--confetti-3', '--confetti-4'].map((v) => css.getPropertyValue(v).trim());
+  const layer = Object.assign(document.createElement('div'), { className: 'confetti' });
+  layer.style.left = `${r.left + r.width / 2}px`;
+  layer.style.top = `${r.top + r.height / 2}px`;
+  document.body.append(layer);
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const color = (i) => colors[i % colors.length];
+  const half = r.width / 2;
+
+  /** 조각 하나: (x0,y0)에서 출발 → (dx,dy)까지 솟았다가 → 아래로 떨어지며 사라짐 */
+  function piece(el, { x0 = 0, y0 = 0, dx, dy, fall = 90, rot = rand(-600, 600), dur = rand(1100, 1600), delay = 0, sway = 0 }) {
+    layer.append(el);
+    const at = (x, y, deg, sc) => `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${deg}deg) scale(${sc})`;
+    el.animate(
+      [
+        { transform: at(x0, y0, 0, 0.3), opacity: 1 },
+        { transform: at(x0 + dx, y0 + dy, rot * 0.5, 1), opacity: 1, offset: 0.35, easing: 'cubic-bezier(.3,0,.7,1)' },
+        { transform: at(x0 + dx * 1.1 + sway, y0 + dy + fall * 0.6, rot * 0.8, 1), opacity: 1, offset: 0.7 },
+        { transform: at(x0 + dx * 1.15 - sway, y0 + dy + fall, rot, 0.8), opacity: 0 },
+      ],
+      { duration: dur, delay, easing: 'cubic-bezier(.15,.8,.35,1)', fill: 'both' },
+    );
+  }
+  function bit(i, big = false) {
+    const el = document.createElement('i');
+    const kind = i % 4; // 0 동그라미 · 1,2 네모 · 3 긴 리본
+    const w = kind === 0 ? rand(6, 9) : kind === 3 ? 4 : rand(6, 10);
+    const h = kind === 0 ? w : kind === 3 ? rand(16, 24) : rand(9, 14);
+    Object.assign(el.style, { width: `${w * (big ? 1.2 : 1)}px`, height: `${h * (big ? 1.2 : 1)}px`, background: color(i), borderRadius: kind === 0 ? '50%' : '2px' });
+    return el;
+  }
+
+  // ① 가운데 큰 폭죽 — 위쪽으로 넓게
+  const spread = Math.min(half + 70, 240);
+  for (let i = 0; i < 56; i++) {
+    const ang = (-90 + rand(-80, 80)) * (Math.PI / 180);
+    const d = rand(0.35, 1);
+    piece(bit(i, i % 5 === 0), { dx: Math.cos(ang) * spread * d, dy: Math.sin(ang) * rand(90, 190) * d - 20, fall: rand(80, 160), delay: rand(0, 80), sway: rand(-20, 20) });
+  }
+  // ② 양 끝 파티 폭죽 — 조금 늦게, 안쪽 위로 비스듬히
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 20; i++) {
+      const ang = (side < 0 ? -55 : -125) + rand(-22, 22);
+      const rad = ang * (Math.PI / 180);
+      const d = rand(80, 170);
+      piece(bit(i + side + 7), { x0: side * (half - 12), dx: Math.cos(rad) * d, dy: Math.sin(rad) * d, fall: rand(70, 130), delay: 180 + rand(0, 90), sway: rand(-15, 15) });
+    }
+  }
+  // ③ 반짝이 ✦ — 버튼 둘레에서 켜졌다 꺼짐
+  for (let i = 0; i < 9; i++) {
+    const el = Object.assign(document.createElement('b'), { className: 'spark', textContent: '✦' });
+    el.style.color = color(i + 2);
+    el.style.fontSize = `${rand(12, 20)}px`;
+    layer.append(el);
+    const x = rand(-half - 10, half + 10);
+    const y = rand(-110, -30);
+    el.animate(
+      [
+        { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(0) rotate(0deg)`, opacity: 0 },
+        { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1.2) rotate(90deg)`, opacity: 1, offset: 0.4 },
+        { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(0) rotate(180deg)`, opacity: 0 },
+      ],
+      { duration: rand(600, 900), delay: rand(100, 700), fill: 'both' },
+    );
+  }
+  // ④ 🎉 + 한마디가 버튼 위로 떠올라 잠시 머물렀다 사라짐
+  const pop = document.createElement('b');
+  pop.className = 'party';
+  pop.innerHTML = '<span class="party-emoji">🎉</span><span class="party-text">오늘도 수고했어요!</span>';
+  pop.setAttribute('role', 'status'); // 화면 읽기 기능에도 들리게
+  layer.append(pop);
+  const lift = r.height / 2 + 34; // 버튼 바로 위
+  pop.animate(
+    [
+      { transform: 'translate(-50%, -50%) scale(.3)', opacity: 0 },
+      { transform: `translate(-50%, calc(-50% - ${lift}px)) scale(1.08)`, opacity: 1, offset: 0.18 },
+      { transform: `translate(-50%, calc(-50% - ${lift}px)) scale(1)`, opacity: 1, offset: 0.26 },
+      { transform: `translate(-50%, calc(-50% - ${lift + 8}px)) scale(1)`, opacity: 1, offset: 0.85 },
+      { transform: `translate(-50%, calc(-50% - ${lift + 22}px)) scale(.96)`, opacity: 0 },
+    ],
+    { duration: 2200, easing: 'cubic-bezier(.2,.8,.3,1)', fill: 'both' },
+  );
+  pop.querySelector('.party-emoji').animate(
+    [{ transform: 'rotate(-25deg) scale(.6)' }, { transform: 'rotate(12deg) scale(1.2)', offset: 0.5 }, { transform: 'rotate(0deg) scale(1)' }],
+    { duration: 600, delay: 120, easing: 'ease-out', fill: 'both' },
+  );
+  setTimeout(() => layer.remove(), 2500);
+}
 
 let toastTimer;
 function toast(msg) {
