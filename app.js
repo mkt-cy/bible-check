@@ -79,7 +79,7 @@ async function boot() {
   ]);
   S.plan = plan;
   S.church = await fetch('data/church.json').then((r) => r.json()).catch(() => null);
-  if (S.church?.sermons) S.sermons = (await fetch('data/sermons.json').then((r) => r.json()).catch(() => null))?.videos ?? [];
+  await loadSermons();
   if (!S.church?.sermons?.playlist) $('.tabbar [data-tab="sermons"]')?.remove();
   S.byCode = new Map(books.map((b) => [b.code, b]));
   plan.days.forEach((d) => dayChapters(d).forEach((c) => S.chapterDay.set(c, d.n)));
@@ -125,7 +125,18 @@ async function loadRecords() {
 async function refresh() {
   await loadRecords();
   S.lastDate = dateKey();
+  await loadSermons();
   render();
+}
+
+/** 설교 목록 다시 받기 — 앱을 켜 둔 채 일요일 밤을 넘겨도, 다시 열면 새 설교가 보이게 */
+async function loadSermons() {
+  if (!S.church?.sermons) return;
+  const videos = (await fetch('data/sermons.json').then((r) => r.json()).catch(() => null))?.videos;
+  if (!videos || videos[0]?.id === S.sermons[0]?.id) return;
+  S.sermons = videos;
+  S.sermonId = null;
+  if (location.hash === '#/sermons') $('#app').innerHTML = ''; // 설교 화면은 한 번만 그리므로 비워서 새로 그리게
 }
 
 /** 하루 기록 바꾸기: DB의 최신 기록에 변경을 적용하고 화면을 다시 그린다 */

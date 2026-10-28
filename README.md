@@ -44,7 +44,7 @@
 ### 교회·설교 (`data/church.json`, `data/sermons.json`)
 
 - `church.json`: 교회 이름 + 설교 유튜브 재생목록 ID. 다른 교회에서 쓰면 이 파일만 바꾼다 (없으면 설교 탭이 숨는다).
-- `sermons.json`: 재생목록의 최근 영상 15개. **손으로 고치지 않는다** — GitHub Actions(`.github/workflows/sermons.yml`)가 매주 일·월에 유튜브 RSS로 받아 커밋한다. 급하면 Actions 탭 → "설교 목록 갱신" → Run workflow, 또는 `npm run sermons`.
+- `sermons.json`: 재생목록의 최근 영상 15개. GitHub Actions(`.github/workflows/sermons.yml`)가 일요일 밤·월요일엔 20분마다 새 설교를 확인해(리눅스, 가벼움) 있을 때만 맥에서 썸네일을 읽고 커밋한다 → 올라온 뒤 보통 20~40분 안에 앱에 반영. 앱은 다시 열 때마다 목록을 새로 받는다. 급하면 Actions 탭 → "설교 목록 갱신" → Run workflow, 또는 `npm run sermons`.
 - 설교 제목·본문·시리즈는 유튜브 설명란에 없고 **썸네일 그림에만** 있다 → 맥 문자 인식(`scripts/ocr.swift`, Vision)으로 읽는다. 그래서 Actions도 맥 환경(macos-latest, 공개 저장소 무료)에서 돈다. 구절은 맞춤법 교정을 끈 결과로 읽는다(교정이 '-'를 지움).
 - 잘못 읽힌 제목·구절은 GitHub에서 `data/sermons.json`을 바로 고치면 된다 — 한 번 읽은 영상은 다시 읽지 않으므로 고친 값이 유지된다.
 - 재생목록을 통째로 퍼오면(videoseries) "볼 수 없습니다"가 뜬다(팟캐스트 지정 재생목록). 그래서 영상 하나씩 띄운다.

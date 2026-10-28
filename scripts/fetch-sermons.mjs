@@ -34,6 +34,14 @@ if (!videos.length) throw new Error('영상이 하나도 없음 — 재생목록
 videos.sort((a, b) => b.date.localeCompare(a.date));
 videos = videos.slice(0, KEEP);
 
+// --check: 새 설교가 있는지만 본다 (가벼운 리눅스에서 자주 돌리고, 있을 때만 맥에서 글자 읽기)
+if (process.argv.includes('--check')) {
+  const fresh = videos.filter((v) => !known.get(v.id)?.name);
+  console.log(fresh.length ? `새 설교 ${fresh.length}개: ${fresh.map((v) => v.date).join(', ')}` : '새 설교 없음');
+  if (process.env.GITHUB_OUTPUT) writeFileSync(process.env.GITHUB_OUTPUT, `new=${fresh.length > 0}\n`, { flag: 'a' });
+  process.exit(0);
+}
+
 // ── 썸네일에서 설교 제목·본문 읽기 ──
 let ocrBin = null;
 const tmp = mkdtempSync(join(tmpdir(), 'sermons-'));

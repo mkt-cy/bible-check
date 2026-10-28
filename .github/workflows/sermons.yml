@@ -1,14 +1,35 @@
-# 매주 설교 목록 갱신: 교회 재생목록 + 썸네일의 제목·본문 → data/sermons.json → 바뀌었으면 커밋 (Pages가 자동 배포)
+# 설교 목록 갱신: 교회 재생목록 + 썸네일의 제목·본문 → data/sermons.json → 바뀌었으면 커밋 (Pages가 1분 안에 배포)
+# 1단계(check, 리눅스·10초): 새 설교가 있는지만 본다 → 자주 돌려도 가볍다
+# 2단계(update, 맥): 새 설교가 있을 때만 썸네일 글자를 읽고 커밋 (맥 Vision이 맥에서만 된다)
 name: 설교 목록 갱신
 on:
   schedule:
-    - cron: '0 13,22 * * 0,1' # 한국 시간 일·월 밤 10시, 월·화 아침 7시 (업로드가 늦어도 잡히게)
+    # 시각은 UTC (한국 = UTC+9). GitHub 예약 실행은 몇~수십 분 늦게 시작될 수 있다.
+    - cron: '*/20 12-17 * * 0' # 일요일 밤 9시 ~ 새벽 2시 40분(한국), 20분마다 — 설교는 보통 밤 9시 40분~11시에 올라온다
+    - cron: '*/20 0-14 * * 1'  # 월요일 오전 9시 ~ 밤 11시 40분(한국), 20분마다 — 늦게 올라오는 주
+    - cron: '0 0 * * *'        # 매일 오전 9시(한국) 한 번 — 다른 요일에 올라온 경우 대비
   workflow_dispatch: {} # Actions 탭에서 손으로 돌리기
 permissions:
   contents: write
+concurrency:
+  group: sermons
+  cancel-in-progress: false
 jobs:
-  fetch:
-    runs-on: macos-latest # 썸네일 글자 읽기(맥 Vision)가 맥에서만 된다
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      new: ${{ steps.check.outputs.new }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: check
+        run: node scripts/fetch-sermons.mjs --check
+  update:
+    needs: check
+    if: needs.check.outputs.new == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,4 +41,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898699+github-actions[bot]@users.noreply.github.com'
           git commit -am '설교 목록 갱신'
+          git pull --rebase
           git push
