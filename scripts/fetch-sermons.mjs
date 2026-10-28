@@ -16,8 +16,12 @@ let prev = '';
 try { prev = readFileSync(out, 'utf8'); } catch {}
 const known = new Map((prev ? JSON.parse(prev).videos : []).map((v) => [v.id, v]));
 
-const res = await fetch(`https://www.youtube.com/feeds/videos.xml?playlist_id=${list}`);
-if (!res.ok) throw new Error(`재생목록을 못 받음: HTTP ${res.status}`);
+const res = await fetch(`https://www.youtube.com/feeds/videos.xml?playlist_id=${list}`).catch((e) => ({ ok: false, status: e.message }));
+if (!res.ok) {
+  // 유튜브가 잠깐 응답을 안 줄 때가 있다 → 실패로 끝내지 않는다 (20분 뒤 다시 확인, 실패 메일 폭탄 방지)
+  console.log(`재생목록을 못 받음 (${res.status}) — 다음 확인 때 다시`);
+  process.exit(0);
+}
 const xml = await res.text();
 
 const tag = (s, name) => s.match(new RegExp(`<${name}>([^<]*)</${name}>`))?.[1] ?? '';
@@ -36,7 +40,9 @@ videos = videos.slice(0, KEEP);
 
 // --check: 새 설교가 있는지만 본다 (가벼운 리눅스에서 자주 돌리고, 있을 때만 맥에서 글자 읽기)
 if (process.argv.includes('--check')) {
-  const fresh = videos.filter((v) => !known.get(v.id)?.name);
+  // 처음 보는 영상, 또는 아직 제목을 못 읽은 최근 3일 안의 영상 (썸네일이 늦게 올라오는 경우) — 오래 못 읽은 건 포기
+  const recent = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
+  const fresh = videos.filter((v) => !known.has(v.id) || (!known.get(v.id).name && v.date >= recent));
   console.log(fresh.length ? `새 설교 ${fresh.length}개: ${fresh.map((v) => v.date).join(', ')}` : '새 설교 없음');
   if (process.env.GITHUB_OUTPUT) writeFileSync(process.env.GITHUB_OUTPUT, `new=${fresh.length > 0}\n`, { flag: 'a' });
   process.exit(0);
@@ -93,7 +99,9 @@ for (const v of videos) {
   const old = known.get(v.id);
   if (old?.name) { Object.assign(v, { name: old.name, passage: old.passage, series: old.series }); continue; }
   const info = await readThumb(v.id);
-  if (info?.name) { Object.assign(v, info); console.log(`읽음 ${v.date}: ${info.name} <${info.passage}>`); }
+  // 교회 썸네일이 아직 안 올라와 영상 장면이 썸네일일 때는 저장하지 않는다 (본문 구절 <...>이 보여야 교회 썸네일)
+  if (info?.name && info.passage) { Object.assign(v, info); console.log(`읽음 ${v.date}: ${info.name} <${info.passage}>`); }
+  else console.log(`아직 못 읽음 ${v.date} — 다음 확인 때 다시`);
 }
 
 const next = JSON.stringify({ playlist: list, videos }, null, 1) + '\n';
