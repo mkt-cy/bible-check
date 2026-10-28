@@ -138,6 +138,29 @@ const qtDate = (n) => String(n).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
 const qtDone = (date) => !!S.qtRecs.get(date)?.chapters?.QT;
 const qtPage = (date) => `https://sum.su.or.kr:8888/bible/today?qt_ty=${encodeURIComponent(S.church.qt.edition)}&base_de=${date}`;
 
+/** 날짜 창(이번 주·전체 표에서 날짜 누르기) 아래쪽 QT — 지난 QT를 나중에 체크하거나 앞날 본문을 미리 본다 */
+function qtSheetBlock(date) {
+  const qt = S.church?.qt;
+  if (!qt || date < qt.start) return '';
+  const today = dateKey();
+  const d = S.qt.find((x) => x.date === date);
+  const done = qtDone(date);
+  if (!d && date > today) return `
+    <section class="sheet-qt">
+      <p class="kicker">QT · ${esc(qt.name)}</p>
+      <p class="meta">이 날 본문은 아직 나오지 않았어요.</p>
+    </section>`;
+  return `
+    <section class="sheet-qt">
+      <p class="kicker">QT · ${esc(qt.name)}</p>
+      ${d ? `<h3>${esc(d.title)}</h3><p class="passage">${esc(d.passage)}</p>` : ''}
+      <div class="btns qt-btns">
+        <a class="secondary" href="${qtPage(date)}" target="_blank" rel="noopener">본문·해설 보기 ↗</a>
+        ${date <= today ? `<button class="primary ${done ? 'is-done' : ''}" data-act="qt" data-date="${date}">${done ? '✓ QT 했어요' : 'QT 했어요'}</button>` : ''}
+      </div>
+    </section>`;
+}
+
 async function loadQt() {
   if (!S.church?.qt) return false;
   const days = (await fetch('data/qt.json').then((r) => r.json()).catch(() => null))?.days;
@@ -725,6 +748,7 @@ function renderSheet() {
     <button class="primary ${state === 'done' ? 'is-done' : ''}" data-act="day" data-n="${d.n}">${state === 'done' ? '✓ 다 읽었어요' : '다 읽었어요'}</button>
     ${state !== 'none' ? noteField(d.n, rec.note) : ''}
     ${fillable ? `<button class="link fill" data-act="fill" data-n="${d.n}">첫날부터 이 날까지 모두 읽었어요</button>` : ''}
+    ${qtSheetBlock(d.date)}
     <button class="link close" data-close>닫기</button>`;
 }
 

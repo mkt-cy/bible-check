@@ -265,6 +265,10 @@ button { cursor: pointer; }
 a.secondary { text-decoration: none; color: var(--ink); }
 .qt-btns > * { flex: 1 1 140px; }
 .qt-btns .primary { margin: 0; }
+.sheet-qt { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sheet-qt .kicker { color: var(--accent-ink); }
+.sheet-qt h3 { margin: 4px 0 8px; font-size: calc(18px * var(--fs)); }
+.sheet-qt .passage { margin-bottom: 12px; }
 .cell { position: relative; }
 .qt-dot {
   font-size: calc(9px * var(--fs)); font-weight: 800; line-height: 1;
