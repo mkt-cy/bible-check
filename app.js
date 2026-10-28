@@ -144,7 +144,6 @@ function qtSheetBlock(date) {
   if (!qt || date < qt.start) return '';
   const today = dateKey();
   const d = S.qt.find((x) => x.date === date);
-  const done = qtDone(date);
   if (!d && date > today) return `
     <section class="sheet-qt">
       <p class="kicker">QT · ${esc(qt.name)}</p>
@@ -153,13 +152,22 @@ function qtSheetBlock(date) {
   return `
     <section class="sheet-qt">
       <p class="kicker">QT · ${esc(qt.name)}</p>
-      ${d ? `<h3>${esc(d.title)}</h3><p class="passage">${esc(d.passage)}</p>` : ''}
-      <div class="btns qt-btns">
-        <a class="secondary" href="${qtPage(date)}" target="_blank" rel="noopener">본문·해설 보기 ↗</a>
-        ${date <= today ? `<button class="primary ${done ? 'is-done' : ''}" data-act="qt" data-date="${date}">${done ? '✓ QT 했어요' : 'QT 했어요'}</button>` : ''}
-      </div>
+      ${d ? `<h3>${esc(d.title)}</h3>` : ''}
+      ${qtPassageRow(date, d)}
+      ${qtButton(date)}
     </section>`;
 }
+
+/** 본문 구절 칩 + 같은 크기의 '본문·해설 보기' 칩 */
+const qtPassageRow = (date, d) => `
+  <div class="qt-row">
+    ${d ? `<span class="passage">${esc(d.passage)}</span>` : ''}
+    <a class="passage link-chip" href="${qtPage(date)}" target="_blank" rel="noopener">본문·해설 보기 ↗</a>
+  </div>`;
+const qtButton = (date) => {
+  const done = qtDone(date);
+  return `<button class="primary ${done ? 'is-done' : ''}" data-act="qt" data-date="${date}">${done ? '✓ QT 했어요' : 'QT 했어요'}</button>`;
+};
 
 async function loadQt() {
   if (!S.church?.qt) return false;
@@ -186,11 +194,9 @@ function qtCard(today) {
   return `
     <section class="card qt ${done ? 'done' : ''}">
       <p class="kicker">오늘 QT · ${esc(qt.name)}</p>
-      ${d ? `<h2>${esc(d.title)}</h2><p class="passage">${esc(d.passage)}</p>` : '<p class="meta">오늘 본문은 아래 버튼으로 볼 수 있어요.</p>'}
-      <div class="btns qt-btns">
-        <a class="secondary" href="${qtPage(today)}" target="_blank" rel="noopener">본문·해설 보기 ↗</a>
-        <button class="primary ${done ? 'is-done' : ''}" data-act="qt" data-date="${today}">${done ? '✓ QT 했어요' : 'QT 했어요'}</button>
-      </div>
+      ${d ? `<h2>${esc(d.title)}</h2>` : ''}
+      ${qtPassageRow(today, d)}
+      ${qtButton(today)}
     </section>`;
 }
 
