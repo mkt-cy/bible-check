@@ -1,0 +1,29 @@
+# QT 본문 갱신: 성서유니온 '오늘의 묵상'에 새로 열린 날의 제목·구절 → data/qt.json → 바뀌었으면 커밋
+# 사이트가 2주쯤 앞까지 미리 열어 두므로 하루 한 번이면 충분하다 (앱에는 늘 2주 치가 들어 있다)
+name: QT 본문 갱신
+on:
+  schedule:
+    - cron: '0 19 * * *' # 매일 새벽 4시(한국)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: qt
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-qt.mjs
+      - run: |
+          git diff --quiet data/qt.json && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898699+github-actions[bot]@users.noreply.github.com'
+          git add data/qt.json
+          git commit -m 'QT 본문 갱신'
+          git pull --rebase
+          git push

@@ -6,6 +6,7 @@
     "test": "node --test test/*.test.mjs",
     "serve": "node scripts/serve.mjs",
     "plan": "node scripts/build-plan.mjs",
-    "sermons": "node scripts/fetch-sermons.mjs"
+    "sermons": "node scripts/fetch-sermons.mjs",
+    "qt": "node scripts/fetch-qt.mjs"
   }
 }

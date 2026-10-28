@@ -256,6 +256,22 @@ button { cursor: pointer; }
 .warn { padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--warn-ink); font-size: calc(14px * var(--fs)); }
 .foot { text-align: center; color: var(--muted); font-size: calc(12px * var(--fs)); }
 
+/* QT */
+.card.qt .kicker { color: var(--accent-ink); }
+.card.qt h2 { margin-bottom: 8px; }
+.card.qt .passage { margin-bottom: 14px; }
+.card.qt.done { border-color: var(--done-line); }
+.qt-btns { flex-wrap: wrap; }
+a.secondary { text-decoration: none; color: var(--ink); }
+.qt-btns > * { flex: 1 1 140px; }
+.qt-btns .primary { margin: 0; }
+.cell { position: relative; }
+.qt-dot {
+  font-size: calc(9px * var(--fs)); font-weight: 800; line-height: 1;
+  padding: 2px 3px; border-radius: 4px;
+  background: var(--accent-soft); color: var(--accent-ink);
+}
+
 /* 설교 */
 .sermons { margin-top: -6px; }
 /* 영상은 폰 화면 가로 끝까지 (넓은 화면에선 둥근 모서리 카드) */

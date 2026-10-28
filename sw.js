@@ -1,9 +1,9 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v13';
+const VERSION = 'v14';
 const SHELL = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'lib/plan.js', 'lib/progress.js', 'lib/store.js',
-  'data/books.json', 'data/church.json', 'data/sermons.json', 'plans/goodway-2026h2.json',
+  'data/books.json', 'data/church.json', 'data/sermons.json', 'data/qt.json', 'plans/goodway-2026h2.json',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',
 ];
 
@@ -24,8 +24,8 @@ self.addEventListener('activate', (e) => {
 // 캐시 먼저 → 없으면 네트워크 (기록은 IndexedDB에 있으므로 여기서 다루지 않는다)
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  // 설교 목록은 매주 바뀐다 → 네트워크 먼저, 안 되면 마지막으로 받은 것
-  if (new URL(e.request.url).pathname.endsWith('/data/sermons.json')) {
+  // 설교 목록·QT 본문은 GitHub이 자주 바꾼다 → 네트워크 먼저, 안 되면 마지막으로 받은 것
+  if (/\/data\/(sermons|qt)\.json$/.test(new URL(e.request.url).pathname)) {
     // 신호가 약하면 2.5초만 기다리고 마지막으로 받은 목록을 쓴다 (받던 건 계속 받아서 다음번에 반영)
     const net = fetch(e.request, { cache: 'no-cache' })
       .then((res) => { if (res.ok) { const copy = res.clone(); e.waitUntil(caches.open(VERSION).then((c) => c.put(e.request, copy))); } return res; });

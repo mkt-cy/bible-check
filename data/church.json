@@ -3,5 +3,10 @@
   "sermons": {
     "title": "일요경건회 말씀",
     "playlist": "PLCqqg5RgkPFEDxwtPnYeGZqu_DaFbMl2_"
+  },
+  "qt": {
+    "name": "매일성경",
+    "edition": "QT1",
+    "start": "2026-11-01"
   }
 }
