@@ -1,5 +1,5 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v10';
+const VERSION = 'v11';
 const SHELL = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'lib/plan.js', 'lib/progress.js', 'lib/store.js',

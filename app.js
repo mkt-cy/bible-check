@@ -451,41 +451,51 @@ function installGuide() {
 
 // ── 설교 (교회 유튜브 재생목록을 앱 안에서) ──
 
+const SERMONS_SHOWN = 4; // 처음에 보이는 설교 목록 수 (나머지는 '더 보기')
+
 function viewSermons() {
   if (!S.church?.sermons) return viewHome();
-  const { title, playlist } = S.church.sermons;
-  const ytLink = `<a class="secondary yt-link" href="https://www.youtube.com/playlist?list=${encodeURIComponent(playlist)}" target="_blank" rel="noopener">유튜브에서 보기</a>`;
-  // 재생목록 통째로는 퍼가기가 막혀 있어서, 받아 둔 목록에서 영상 하나씩 띄운다
-  const cur = S.sermons.find((v) => v.id === S.sermonId) ?? S.sermons[0];
-  let body;
-  if (!navigator.onLine) body = '<p class="warn">인터넷에 연결되면 설교 영상을 볼 수 있어요.</p>';
-  else if (!cur) body = '<p class="meta">설교 목록을 불러오지 못했어요. 아래 버튼으로 유튜브에서 볼 수 있어요.</p>';
-  else {
-    body = `
-      <div class="player"><iframe src="${playerSrc(cur.id)}" title="${esc(cur.title)}"
-        allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-      <ul class="sermon-list">${S.sermons.map((v) => `
-        <li><button class="sermon-row ${v.id === cur.id ? 'on' : ''}" data-act="sermon" data-id="${esc(v.id)}">
-          <b>${longDate(v.date)}</b><span>${esc(sermonName(v.title))}</span>
-        </button></li>`).join('')}
-      </ul>`;
-  }
-  return `
+  const ytLink = `<a class="yt-link" href="https://www.youtube.com/playlist?list=${encodeURIComponent(S.church.sermons.playlist)}" target="_blank" rel="noopener">유튜브에서 전체 설교 보기 ↗</a>`;
+  const head = `
     <header class="top">
       <p class="eyebrow">${esc(S.church.name)}</p>
       <h1>설교 말씀</h1>
-      <p class="sub">${esc(title)}</p>
-    </header>
-    <section class="card sermons">
-      ${body}
-      ${ytLink}
-    </section>
+    </header>`;
+  // 재생목록 통째로는 퍼가기가 막혀 있어서, 받아 둔 목록에서 영상 하나씩 띄운다
+  const cur = S.sermons.find((v) => v.id === S.sermonId) ?? S.sermons[0];
+  if (!navigator.onLine) return `${head}<p class="warn">인터넷에 연결되면 설교 영상을 볼 수 있어요.</p><p class="center">${ytLink}</p>`;
+  if (!cur) return `${head}<p class="meta">설교 목록을 불러오지 못했어요.</p><p class="center">${ytLink}</p>`;
+  const more = S.sermons.length - SERMONS_SHOWN;
+  return `
+    ${head}
+    <div class="sermons">
+      <div class="player"><iframe src="${playerSrc(cur.id)}" title="${esc(sermonName(cur))}"
+        allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <section class="now">${nowInfo(cur)}</section>
+      <h3 class="list-head">설교 목록</h3>
+      <ul class="sermon-list">${S.sermons.map((v) => `
+        <li><button class="sermon-row ${v.id === cur.id ? 'on' : ''}" data-act="sermon" data-id="${esc(v.id)}">
+          <span class="d">${shortDate(v.date)}</span>
+          <span class="t"><b>${esc(sermonName(v))}</b>${v.passage ? `<small>${esc(v.passage)}</small>` : ''}</span>
+        </button></li>`).join('')}
+      </ul>
+      ${more > 0 ? `<button class="secondary more" data-act="moreSermons">이전 설교 ${more}개 더 보기</button>` : ''}
+      <p class="center">${ytLink}</p>
+    </div>
   `;
 }
 
-const playerSrc = (id) => `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0`;
-/** "선한길교회 26.10.25. 일요경건회" → "일요경건회" (날짜는 따로 보여 준다) */
-const sermonName = (t) => t.replace(/^.*?\d{2}\.\d{2}\.\d{2}\.\s*/, '') || t;
+/** 지금 재생 중인 설교: 날짜·시리즈 / 제목 / 본문 */
+function nowInfo(v) {
+  return `
+    <p class="kicker">${longDate(v.date)}${v.series ? ` · ${esc(v.series)}` : ''}</p>
+    <h2>${esc(sermonName(v))}</h2>
+    ${v.passage ? `<p class="passage">${esc(v.passage)}</p>` : ''}`;
+}
+
+const playerSrc = (id) => `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&playsinline=1`;
+/** 썸네일에서 읽은 설교 제목, 없으면 유튜브 제목에서 날짜를 뗀 것 ("선한길교회 26.10.25. 일요경건회" → "일요경건회") */
+const sermonName = (v) => v.name || v.title.replace(/^.*?\d{2}\.\d{2}\.\d{2}\.\s*/, '') || v.title;
 
 function viewSettings() {
   return `
@@ -681,15 +691,20 @@ function flushNote() {
 
 const actions = {
   sermon(el) {
-    // 화면을 다시 그리지 않고 영상만 바꾼다 (목록 스크롤 위치 유지)
+    // 화면을 다시 그리지 않고 영상·제목만 바꾼다 (목록 펼침·스크롤 상태 유지)
     S.sermonId = el.dataset.id;
     const v = S.sermons.find((x) => x.id === S.sermonId);
     const frame = $('.player iframe');
     if (!frame || !v) return;
     frame.src = playerSrc(v.id);
-    frame.title = v.title;
+    frame.title = sermonName(v);
+    $('.sermons .now').innerHTML = nowInfo(v);
     document.querySelectorAll('.sermon-row').forEach((b) => b.classList.toggle('on', b === el));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  moreSermons(el) {
+    $('.sermon-list').classList.add('all');
+    el.remove();
   },
   obNext() {
     S.onboard.step = 2;
