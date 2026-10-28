@@ -1,5 +1,5 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v12';
+const VERSION = 'v13';
 const SHELL = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'lib/plan.js', 'lib/progress.js', 'lib/store.js',
@@ -26,9 +26,14 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   // 설교 목록은 매주 바뀐다 → 네트워크 먼저, 안 되면 마지막으로 받은 것
   if (new URL(e.request.url).pathname.endsWith('/data/sermons.json')) {
-    e.respondWith(fetch(e.request, { cache: 'no-cache' })
-      .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); } return res; })
-      .catch(() => caches.match(e.request, { ignoreSearch: true })));
+    // 신호가 약하면 2.5초만 기다리고 마지막으로 받은 목록을 쓴다 (받던 건 계속 받아서 다음번에 반영)
+    const net = fetch(e.request, { cache: 'no-cache' })
+      .then((res) => { if (res.ok) { const copy = res.clone(); e.waitUntil(caches.open(VERSION).then((c) => c.put(e.request, copy))); } return res; });
+    const cached = (ms) => new Promise((ok) => setTimeout(ok, ms))
+      .then(() => caches.match(e.request, { ignoreSearch: true }))
+      .then((hit) => hit || Promise.reject(new Error('no cache')));
+    // 빠른 쪽: 새 목록 / (2.5초 넘게 느리면) 저장해 둔 목록 / (인터넷 없으면) 저장해 둔 목록 바로
+    e.respondWith(Promise.any([net, cached(2500), net.catch(() => cached(0))]).catch(() => net));
     return;
   }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((hit) => hit || fetch(e.request)));

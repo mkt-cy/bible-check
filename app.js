@@ -33,6 +33,7 @@ const S = {
   church: null, // data/church.json — 교회 이름·설교 재생목록 (없으면 설교 탭을 숨긴다)
   sermons: [], // data/sermons.json — 매주 GitHub이 받아 오는 설교 영상 목록 (최신순)
   sermonId: null, // 지금 띄운 설교 영상
+  sermonsTried: false, // 설교 목록 첫 받기를 마쳤는지 (못 받았으면 '불러오는 중' 대신 안내)
   storage: { ok: true },
   lastExport: null,
   installPrompt: null,
@@ -79,7 +80,11 @@ async function boot() {
   ]);
   S.plan = plan;
   S.church = await fetch('data/church.json').then((r) => r.json()).catch(() => null);
-  await loadSermons();
+  // 설교 목록은 기다리지 않는다 — 받아지면 설교 화면만 다시 그린다
+  loadSermons().finally(() => {
+    S.sermonsTried = true;
+    if (location.hash === '#/sermons' && !$('.player')) { $('#app').innerHTML = ''; render(); }
+  });
   if (!S.church?.sermons?.playlist) $('.tabbar [data-tab="sermons"]')?.remove();
   S.byCode = new Map(books.map((b) => [b.code, b]));
   plan.days.forEach((d) => dayChapters(d).forEach((c) => S.chapterDay.set(c, d.n)));
@@ -125,18 +130,20 @@ async function loadRecords() {
 async function refresh() {
   await loadRecords();
   S.lastDate = dateKey();
-  await loadSermons();
   render();
+  // 설교 목록은 화면을 먼저 그린 뒤 뒤에서 받는다 (느린 데이터에서도 체크 화면이 기다리지 않게)
+  if (await loadSermons() && location.hash === '#/sermons') render();
 }
 
 /** 설교 목록 다시 받기 — 앱을 켜 둔 채 일요일 밤을 넘겨도, 다시 열면 새 설교가 보이게 */
 async function loadSermons() {
   if (!S.church?.sermons) return;
   const videos = (await fetch('data/sermons.json').then((r) => r.json()).catch(() => null))?.videos;
-  if (!videos || videos[0]?.id === S.sermons[0]?.id) return;
+  if (!videos || videos[0]?.id === S.sermons[0]?.id) return false;
   S.sermons = videos;
   S.sermonId = null;
   if (location.hash === '#/sermons') $('#app').innerHTML = ''; // 설교 화면은 한 번만 그리므로 비워서 새로 그리게
+  return true;
 }
 
 /** 하루 기록 바꾸기: DB의 최신 기록에 변경을 적용하고 화면을 다시 그린다 */
@@ -475,7 +482,7 @@ function viewSermons() {
   // 재생목록 통째로는 퍼가기가 막혀 있어서, 받아 둔 목록에서 영상 하나씩 띄운다
   const cur = S.sermons.find((v) => v.id === S.sermonId) ?? S.sermons[0];
   if (!navigator.onLine) return `${head}<p class="warn">인터넷에 연결되면 설교 영상을 볼 수 있어요.</p><p class="center">${ytLink}</p>`;
-  if (!cur) return `${head}<p class="meta">설교 목록을 불러오지 못했어요.</p><p class="center">${ytLink}</p>`;
+  if (!cur) return `${head}<p class="meta">${S.sermonsTried ? '설교 목록을 불러오지 못했어요.' : '설교 목록을 불러오는 중이에요…'}</p><p class="center">${ytLink}</p>`;
   const more = S.sermons.length - SERMONS_SHOWN;
   return `
     ${head}
