@@ -256,6 +256,21 @@ button { cursor: pointer; }
 .warn { padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--warn-ink); font-size: calc(14px * var(--fs)); }
 .foot { text-align: center; color: var(--muted); font-size: calc(12px * var(--fs)); }
 
+/* 설교 */
+.player { position: relative; aspect-ratio: 16 / 9; margin: -6px -6px 0; border-radius: 12px; overflow: hidden; background: #000; }
+.player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-link { margin-top: 14px; width: 100%; text-decoration: none; color: var(--ink); }
+.sermon-list { list-style: none; margin: 14px 0 0; padding: 0; }
+.sermon-row {
+  display: flex; align-items: baseline; gap: 10px; width: 100%;
+  min-height: 48px; padding: 10px 12px;
+  border: 0; border-radius: 10px; background: none;
+  color: var(--ink); text-align: left; font-size: calc(15px * var(--fs)); cursor: pointer;
+}
+.sermon-row span { color: var(--muted); }
+.sermon-row.on { background: var(--accent-soft); }
+.sermon-row.on b { color: var(--accent-ink); }
+
 /* 아래 탭 */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0;

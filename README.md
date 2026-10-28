@@ -41,6 +41,13 @@
 - 화면 표기는 `ranges`에서 생성 (예: "사도행전 28장-로마서 6장"). 시편은 "편"으로 표기.
 - 변환 후 검증: 173일, 날짜 연속, 66권 전 장이 빠짐·중복 없이 한 번씩.
 
+### 교회·설교 (`data/church.json`, `data/sermons.json`)
+
+- `church.json`: 교회 이름 + 설교 유튜브 재생목록 ID. 다른 교회에서 쓰면 이 파일만 바꾼다 (없으면 설교 탭이 숨는다).
+- `sermons.json`: 재생목록의 최근 영상 15개. **손으로 고치지 않는다** — GitHub Actions(`.github/workflows/sermons.yml`)가 매주 일·월에 유튜브 RSS로 받아 커밋한다. 급하면 Actions 탭 → "설교 목록 갱신" → Run workflow, 또는 `npm run sermons`.
+- 재생목록을 통째로 퍼오면(videoseries) "볼 수 없습니다"가 뜬다(팟캐스트 지정 재생목록). 그래서 영상 하나씩 띄운다.
+- 서비스워커는 `sermons.json`만 네트워크 먼저 → 매주 새 목록이 앱 업데이트 없이 반영된다.
+
 ### 개인 기록 (폰 안, IndexedDB)
 
 나중의 Supabase 동기화를 위해 **기록 = 하루 1건의 레코드** (고유 ID + 수정 시각).

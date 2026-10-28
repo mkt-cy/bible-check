@@ -30,6 +30,9 @@ const S = {
   expanded: new Set(), // 장별 체크를 펼친 카드
   justDone: null, // '밀린 것부터'에서 방금 끝낸 날 — 연타로 다음 날까지 체크되지 않게 잠시 붙잡아 둔다
   sheetDay: null,
+  church: null, // data/church.json — 교회 이름·설교 재생목록 (없으면 설교 탭을 숨긴다)
+  sermons: [], // data/sermons.json — 매주 GitHub이 받아 오는 설교 영상 목록 (최신순)
+  sermonId: null, // 지금 띄운 설교 영상
   storage: { ok: true },
   lastExport: null,
   installPrompt: null,
@@ -75,6 +78,9 @@ async function boot() {
     fetch('data/books.json').then((r) => r.json()),
   ]);
   S.plan = plan;
+  S.church = await fetch('data/church.json').then((r) => r.json()).catch(() => null);
+  if (S.church?.sermons) S.sermons = (await fetch('data/sermons.json').then((r) => r.json()).catch(() => null))?.videos ?? [];
+  if (!S.church?.sermons?.playlist) $('.tabbar [data-tab="sermons"]')?.remove();
   S.byCode = new Map(books.map((b) => [b.code, b]));
   plan.days.forEach((d) => dayChapters(d).forEach((c) => S.chapterDay.set(c, d.n)));
   S.mode = await store.getSetting('catchupMode', null);
@@ -103,6 +109,10 @@ async function boot() {
     await refresh(); // 다른 곳에서 바뀐 기록·자정 넘김 반영
   });
   window.addEventListener('pagehide', flushNote);
+  // 설교 화면은 인터넷이 필요하다 — 연결이 바뀌면 안내/영상을 바꿔 그린다
+  const redrawSermons = () => { if (location.hash === '#/sermons') { $('#app').innerHTML = ''; render(); } };
+  window.addEventListener('online', redrawSermons);
+  window.addEventListener('offline', redrawSermons);
   store.onExternalChange(refresh);
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installPrompt = e; render(); });
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
@@ -156,7 +166,9 @@ function render() {
   }
   const route = location.hash.replace('#/', '') || 'home';
   document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === route));
-  const view = { home: viewHome, plan: viewPlan, settings: viewSettings }[route] ?? viewHome;
+  // 영상이 재생 중일 때 다시 그리면 처음으로 돌아가 버린다 → 설교 화면은 한 번만 그린다
+  if (route === 'sermons' && S.church?.sermons && $('#app .sermons')) return;
+  const view = { home: viewHome, plan: viewPlan, sermons: viewSermons, settings: viewSettings }[route] ?? viewHome;
   preservingNote(() => {
     $('#app').innerHTML = view();
     if (S.sheetDay) renderSheet();
@@ -437,6 +449,44 @@ function installGuide() {
     </section>`;
 }
 
+// ── 설교 (교회 유튜브 재생목록을 앱 안에서) ──
+
+function viewSermons() {
+  if (!S.church?.sermons) return viewHome();
+  const { title, playlist } = S.church.sermons;
+  const ytLink = `<a class="secondary yt-link" href="https://www.youtube.com/playlist?list=${encodeURIComponent(playlist)}" target="_blank" rel="noopener">유튜브에서 보기</a>`;
+  // 재생목록 통째로는 퍼가기가 막혀 있어서, 받아 둔 목록에서 영상 하나씩 띄운다
+  const cur = S.sermons.find((v) => v.id === S.sermonId) ?? S.sermons[0];
+  let body;
+  if (!navigator.onLine) body = '<p class="warn">인터넷에 연결되면 설교 영상을 볼 수 있어요.</p>';
+  else if (!cur) body = '<p class="meta">설교 목록을 불러오지 못했어요. 아래 버튼으로 유튜브에서 볼 수 있어요.</p>';
+  else {
+    body = `
+      <div class="player"><iframe src="${playerSrc(cur.id)}" title="${esc(cur.title)}"
+        allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <ul class="sermon-list">${S.sermons.map((v) => `
+        <li><button class="sermon-row ${v.id === cur.id ? 'on' : ''}" data-act="sermon" data-id="${esc(v.id)}">
+          <b>${longDate(v.date)}</b><span>${esc(sermonName(v.title))}</span>
+        </button></li>`).join('')}
+      </ul>`;
+  }
+  return `
+    <header class="top">
+      <p class="eyebrow">${esc(S.church.name)}</p>
+      <h1>설교 말씀</h1>
+      <p class="sub">${esc(title)}</p>
+    </header>
+    <section class="card sermons">
+      ${body}
+      ${ytLink}
+    </section>
+  `;
+}
+
+const playerSrc = (id) => `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0`;
+/** "선한길교회 26.10.25. 일요경건회" → "일요경건회" (날짜는 따로 보여 준다) */
+const sermonName = (t) => t.replace(/^.*?\d{2}\.\d{2}\.\d{2}\.\s*/, '') || t;
+
 function viewSettings() {
   return `
     <header class="top">
@@ -630,6 +680,17 @@ function flushNote() {
 // ── 동작 ──
 
 const actions = {
+  sermon(el) {
+    // 화면을 다시 그리지 않고 영상만 바꾼다 (목록 스크롤 위치 유지)
+    S.sermonId = el.dataset.id;
+    const v = S.sermons.find((x) => x.id === S.sermonId);
+    const frame = $('.player iframe');
+    if (!frame || !v) return;
+    frame.src = playerSrc(v.id);
+    frame.title = v.title;
+    document.querySelectorAll('.sermon-row').forEach((b) => b.classList.toggle('on', b === el));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
   obNext() {
     S.onboard.step = 2;
     render();

@@ -1,0 +1,23 @@
+# 매주 설교 목록 갱신: 교회 재생목록 → data/sermons.json → 바뀌었으면 커밋 (Pages가 자동 배포)
+name: 설교 목록 갱신
+on:
+  schedule:
+    - cron: '0 13,22 * * 0,1' # 한국 시간 일·월 밤 10시, 월·화 아침 7시 (업로드가 늦어도 잡히게)
+  workflow_dispatch: {} # Actions 탭에서 손으로 돌리기
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-sermons.mjs
+      - run: |
+          git diff --quiet data/sermons.json && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898699+github-actions[bot]@users.noreply.github.com'
+          git commit -am '설교 목록 갱신'
+          git push
