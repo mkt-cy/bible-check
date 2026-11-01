@@ -1,4 +1,4 @@
-// 교회 설교 재생목록(유튜브 RSS) → data/sermons.json
+// 교회 설교 재생목록 + 채널 업로드 중 설교(유튜브 RSS) → data/sermons.json
 // 이 재생목록은 통째로 퍼가기가 막혀 있어서, 영상 목록을 미리 받아 두고 앱은 영상 하나씩 띄운다.
 // 설교 제목·본문은 유튜브 설명란에 없고 썸네일 그림에만 있어서, 맥의 문자 인식(scripts/ocr.swift)으로 읽는다.
 // 한 번 읽은 영상은 다시 읽지 않는다 → sermons.json에서 손으로 고친 제목도 그대로 남는다.
@@ -16,24 +16,35 @@ let prev = '';
 try { prev = readFileSync(out, 'utf8'); } catch {}
 const known = new Map((prev ? JSON.parse(prev).videos : []).map((v) => [v.id, v]));
 
-const res = await fetch(`https://www.youtube.com/feeds/videos.xml?playlist_id=${list}`).catch((e) => ({ ok: false, status: e.message }));
-if (!res.ok) {
+// 재생목록 + 채널 업로드 목록을 같이 본다: 교회가 영상을 올리고 재생목록엔 늦게 넣는 주가 있다 (26.11.01.)
+// 채널 쪽은 제목에 sermons.match("일요경건회")가 들어간 영상만
+const feed = async (q) => {
+  const res = await fetch(`https://www.youtube.com/feeds/videos.xml?${q}`).catch((e) => ({ ok: false, status: e.message }));
+  if (res.ok) return res.text();
+  console.log(`목록을 못 받음 ${q} (${res.status})`);
+  return null;
+};
+const xmls = await Promise.all([feed(`playlist_id=${list}`), church.sermons.channel ? feed(`channel_id=${church.sermons.channel}`) : '']);
+if (xmls.some((x) => x === null)) {
   // 유튜브가 잠깐 응답을 안 줄 때가 있다 → 실패로 끝내지 않는다 (20분 뒤 다시 확인, 실패 메일 폭탄 방지)
-  console.log(`재생목록을 못 받음 (${res.status}) — 다음 확인 때 다시`);
+  // 한쪽만 받고 저장하면 목록이 줄어들 수 있으니 둘 다 받을 때까지 기다린다
+  console.log('다음 확인 때 다시');
   process.exit(0);
 }
-const xml = await res.text();
 
 const tag = (s, name) => s.match(new RegExp(`<${name}>([^<]*)</${name}>`))?.[1] ?? '';
 const unxml = (s) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+const entries = (xml) => [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(([, e]) => e);
+const match = church.sermons.match ?? '';
+const seen = new Set();
 
-let videos = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map(([, e]) => {
+let videos = [...entries(xmls[0]), ...entries(xmls[1]).filter((e) => unxml(tag(e, 'title')).includes(match))].map((e) => {
   const title = unxml(tag(e, 'title'));
   // 올린 날이 아니라 설교한 날: 제목의 "26.10.25." → 2026-10-25 (없으면 올린 날)
   const m = title.match(/(\d{2})\.(\d{2})\.(\d{2})\./);
   const date = m ? `20${m[1]}-${m[2]}-${m[3]}` : tag(e, 'published').slice(0, 10);
   return { id: tag(e, 'yt:videoId'), title, date };
-}).filter((v) => /^[\w-]{11}$/.test(v.id));
+}).filter((v) => /^[\w-]{11}$/.test(v.id) && !seen.has(v.id) && seen.add(v.id));
 if (!videos.length) throw new Error('영상이 하나도 없음 — 재생목록 주소를 확인');
 videos.sort((a, b) => b.date.localeCompare(a.date));
 videos = videos.slice(0, KEEP);
