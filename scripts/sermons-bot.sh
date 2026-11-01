@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 git pull -q --rebase
-node scripts/fetch-sermons.mjs --check | grep -q '^새 설교' || exit 0
+node scripts/fetch-sermons.mjs --check | grep -q '^새 설교 [0-9]' || exit 0  # '새 설교 없음'은 거른다
 node scripts/fetch-sermons.mjs
 git diff --quiet data/sermons.json && exit 0
 git commit -qm '설교 목록 갱신 (맥)' data/sermons.json
