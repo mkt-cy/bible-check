@@ -30,7 +30,7 @@
 }
 [data-skin][data-mode="dark"] { --green-soft: color-mix(in srgb, var(--green) 16%, var(--card)); }
 /* 주차 배지(홀수 주): 강조색 채움 위 글씨가 흐려지는 테마가 많아서 → 글씨용 강조색 바탕 + 카드색 글씨 (대비 보장) */
-[data-skin] .week:nth-child(odd) .wk { background: var(--accent-ink); color: var(--card); }
+[data-skin] .week:nth-child(odd) .wk { background: var(--accent-ink); color: var(--bg); } /* --card는 글래스에서 반투명이라 글씨가 묻힌다 → 늘 꽉 찬 --bg */
 /* 아주 오래된 폰(색 섞기 미지원): 섞지 않은 비슷한 색으로 */
 @supports not (color: color-mix(in srgb, red 50%, blue)) {
   [data-skin] {
@@ -78,23 +78,23 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   --radius: 22px; --tabbar: 76px;
   --glass-edge: rgba(255, 255, 255, .75);
   --glass-shadow: 0 8px 30px rgba(31, 45, 100, .10), inset 0 1px 0 rgba(255, 255, 255, .7);
-  --sheet-bg: rgba(250, 251, 255, .82);
+  --sheet-bg: rgba(250, 251, 255, .6);
   --line: color-mix(in srgb, var(--ink) 14%, transparent);
   --chip: color-mix(in srgb, var(--ink) 9%, transparent);
-  --tabbar-bg: rgba(255, 255, 255, .55);
+  --tabbar-bg: rgba(255, 255, 255, .36);
   --backdrop: rgba(0, 0, 0, .22);
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 [data-skin^="glass-"][data-mode="dark"] {
   --glass-edge: rgba(255, 255, 255, .16);
   --glass-shadow: 0 8px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .10);
-  --sheet-bg: rgba(26, 28, 42, .84);
-  --tabbar-bg: rgba(28, 30, 44, .55);
+  --sheet-bg: rgba(26, 28, 42, .6);
+  --tabbar-bg: rgba(28, 30, 44, .38);
   --backdrop: rgba(0, 0, 0, .5);
 }
 [data-skin^="glass-"] :is(.card, .ob-points li) {
   border-color: var(--glass-edge); box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%); backdrop-filter: blur(30px) saturate(190%);
 }
 [data-skin^="glass-"] :is(.option, .seg button, .note, .cell, .skin) { border-color: var(--glass-edge); }
 [data-skin^="glass-"] .primary { border-radius: 16px; box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 32%, transparent); }
@@ -109,13 +109,13 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 10px);
   max-width: 496px; margin: 0 auto; padding: 6px;
   border: 1px solid var(--glass-edge); border-radius: 30px; box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%); backdrop-filter: blur(30px) saturate(190%);
 }
 [data-skin^="glass-"] .tabbar a { height: 52px; border-radius: 24px; }
 [data-skin^="glass-"] .tabbar a.on { box-shadow: none; background: var(--accent-soft); color: var(--accent-ink); }
 [data-skin^="glass-"] .sheet-panel {
   background: var(--sheet-bg); border-radius: 28px 28px 0 0; border-top: 1px solid var(--glass-edge);
-  -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(190%); backdrop-filter: blur(36px) saturate(190%);
 }
 [data-skin^="glass-"] :is(.toast, .confetti .party) { box-shadow: var(--glass-shadow); }
 [data-skin^="glass-"] :is(.seg button.on, .skin.on, .option.on) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); box-shadow: 0 0 0 1px var(--accent); }
@@ -202,7 +202,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 
 /* 기본 · 리퀴드 글래스 */
 [data-skin="glass-liquid"] {
-  --bg: #eef1f8; --card: rgba(255, 255, 255, .58); --field: rgba(255, 255, 255, .72);
+  --bg: #eef1f8; --card: rgba(255, 255, 255, .34); --field: rgba(255, 255, 255, .5);
   --ink: #1c1c1e; --muted: #4a5160;
   --green: #1f7a35; --green-ink: #1a6b2e; --accent: #007aff; --accent-ink: #0060c9;
   --on-fill: #ffffff; --primary: #0067d6; --on-primary: #ffffff; --warn-ink: #a84a00;
@@ -213,7 +213,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: light;
 }
 [data-skin="glass-liquid"][data-mode="dark"] {
-  --bg: #0b0d1a; --card: rgba(255, 255, 255, .08); --field: rgba(255, 255, 255, .10);
+  --bg: #0b0d1a; --card: rgba(255, 255, 255, .05); --field: rgba(255, 255, 255, .08);
   --ink: #f5f5f7; --muted: #b0b6c4;
   --green: #30d158; --green-ink: #4ade80; --accent: #0a84ff; --accent-ink: #6cb2ff;
   --on-fill: #00110a; --primary: #0b6bd3; --on-primary: #ffffff; --warn-ink: #ffb36b;
@@ -411,7 +411,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 
 /* 특별한 · 벚꽃 유리 */
 [data-skin="glass-sakura"] {
-  --bg: #fdf0f4; --card: rgba(255, 255, 255, .55); --field: rgba(255, 255, 255, .7);
+  --bg: #fdf0f4; --card: rgba(255, 255, 255, .34); --field: rgba(255, 255, 255, .5);
   --ink: #3a2230; --muted: #74505f;
   --green: #c93a6a; --green-ink: #ad2c58; --accent: #8a6cf0; --accent-ink: #5a3fc4;
   --on-fill: #ffffff; --primary: #c93a6a; --on-primary: #ffffff;
@@ -421,7 +421,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: light;
 }
 [data-skin="glass-sakura"][data-mode="dark"] {
-  --bg: #1a0f17; --card: rgba(255, 255, 255, .08); --field: rgba(255, 255, 255, .1);
+  --bg: #1a0f17; --card: rgba(255, 255, 255, .05); --field: rgba(255, 255, 255, .08);
   --ink: #fbeef3; --muted: #d0b3c0;
   --green: #ff7aa6; --green-ink: #ff9cbc; --accent: #b39dff; --accent-ink: #c8b8ff;
   --on-fill: #2a0e1a; --primary: #ff7aa6; --on-primary: #2a0e1a;
@@ -433,7 +433,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 
 /* 특별한 · 오로라 유리 */
 [data-skin="glass-aurora"] {
-  --bg: #eaf6f4; --card: rgba(255, 255, 255, .55); --field: rgba(255, 255, 255, .7);
+  --bg: #eaf6f4; --card: rgba(255, 255, 255, .34); --field: rgba(255, 255, 255, .5);
   --ink: #102a2a; --muted: #44615f;
   --green: #0b7560; --green-ink: #096653; --accent: #6a4fd8; --accent-ink: #5137b8;
   --on-fill: #ffffff; --primary: #0b7058; --on-primary: #ffffff;
@@ -443,7 +443,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: light;
 }
 [data-skin="glass-aurora"][data-mode="dark"] {
-  --bg: #04101a; --card: rgba(255, 255, 255, .07); --field: rgba(255, 255, 255, .09);
+  --bg: #04101a; --card: rgba(255, 255, 255, .05); --field: rgba(255, 255, 255, .08);
   --ink: #e8fbf6; --muted: #a6c4c0;
   --green: #3ee8b0; --green-ink: #5ff0c0; --accent: #a58bff; --accent-ink: #bba8ff;
   --on-fill: #03201a; --primary: #3ee8b0; --on-primary: #03201a;
@@ -524,7 +524,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 /* 어스름 (붙여 준 Dimension 스타일 문서에서) — 거의 검은 바탕 · 서리 유리 · 흰 알약 버튼 · 위쪽에 노을빛
    유리 모양을 빌리되 그림자 대신 얇은 안쪽 선만 */
 [data-skin="glass-dusk"] {
-  --bg: #f2f2f2; --card: rgba(255, 255, 255, .62); --field: rgba(255, 255, 255, .7);
+  --bg: #f2f2f2; --card: rgba(255, 255, 255, .38); --field: rgba(255, 255, 255, .52);
   --ink: #161616; --muted: #5a5a5a;
   --green: #161616; --green-ink: #161616; --accent: #6b62f2; --accent-ink: #4f45d6;
   --on-fill: #ffffff; --primary: #161616; --on-primary: #ffffff;
@@ -537,14 +537,14 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: light;
 }
 [data-skin="glass-dusk"][data-mode="dark"] {
-  --bg: #0a0a0a; --card: rgba(212, 212, 212, .09); --field: rgba(212, 212, 212, .07);
+  --bg: #0a0a0a; --card: rgba(212, 212, 212, .06); --field: rgba(212, 212, 212, .05);
   --ink: #ededed; --muted: #a8a8a8;
   --green: #ededed; --green-ink: #ffffff; --accent: #8f88ff; --accent-ink: #aaa4ff;
   --on-fill: #0a0a0a; --primary: #ffffff; --on-primary: #161616;
   --green-soft: rgba(237, 237, 237, .1); --accent-soft: rgba(107, 98, 242, .2);
   --glass-edge: rgba(229, 229, 229, .14);
   --glass-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
-  --tabbar-bg: rgba(22, 22, 22, .7);
+  --tabbar-bg: rgba(22, 22, 22, .45);
   --art: radial-gradient(90% 36% at 0% 0%, rgba(255, 140, 60, .45), transparent 70%),
          radial-gradient(90% 36% at 100% 0%, rgba(40, 80, 255, .45), transparent 70%),
          linear-gradient(90deg, transparent 40%, rgba(107, 98, 242, .10) 50%, transparent 60%) 0 0 / 100% 2px no-repeat, #0a0a0a;
@@ -675,7 +675,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 /* 아기자기 · 네컷 구름 (네컷 사진 프레임에서) — 분홍→복숭아→노랑 그라데이션, 구름 같은 흰 카드, 말풍선 머리말, 반짝이 */
 [data-skin="cute-fourcut"] {
   --bg: #fbd0c0; --card: #ffffff; --ink: #3a2a2e; --muted: #5a3c44;
-  --green: #d33561; --green-ink: #b8264f; --accent: #f2a900; --accent-ink: #8a5a00;
+  --green: #d33561; --green-ink: #b8264f; --accent: #f2a900; --accent-ink: #714800;
   --on-fill: #ffffff; --primary: #d33561; --on-primary: #ffffff;
   --deco: "💗"; --display: "Gaegu", var(--font); --font-load: "Gaegu:wght@700";
   --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
@@ -742,7 +742,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 
 /* 리퀴드 글래스 · 살구 */
 [data-skin="glass-peach"] {
-  --bg: #fff3ec; --card: rgba(255, 255, 255, .56); --field: rgba(255, 255, 255, .7);
+  --bg: #fff3ec; --card: rgba(255, 255, 255, .34); --field: rgba(255, 255, 255, .5);
   --ink: #3a2418; --muted: #6d4f3c;
   --green: #b0501c; --green-ink: #974214; --accent: #d9701a; --accent-ink: #94470b;
   --on-fill: #ffffff; --primary: #b0501c; --on-primary: #ffffff;
@@ -752,7 +752,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: light;
 }
 [data-skin="glass-peach"][data-mode="dark"] {
-  --bg: #1c120d; --card: rgba(255, 255, 255, .08); --field: rgba(255, 255, 255, .1);
+  --bg: #1c120d; --card: rgba(255, 255, 255, .05); --field: rgba(255, 255, 255, .08);
   --ink: #fff0e6; --muted: #d4b5a2;
   --green: #ff9e6b; --green-ink: #ffb48a; --accent: #ffc46b; --accent-ink: #ffd08a;
   --on-fill: #2a1208; --primary: #ff9e6b; --on-primary: #2a1208;
@@ -765,7 +765,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 /* 네컷 구름 · 하늘 */
 [data-skin="cute-fourcut-sky"] {
   --bg: #cfdcf7; --card: #ffffff; --ink: #26304a; --muted: #39445f;
-  --green: #3d63c9; --green-ink: #3456b0; --accent: #f2a900; --accent-ink: #8a5a00;
+  --green: #3d63c9; --green-ink: #3456b0; --accent: #f2a900; --accent-ink: #714800;
   --on-fill: #ffffff; --primary: #3d63c9; --on-primary: #ffffff;
   --deco: "💙"; --display: "Gaegu", var(--font); --font-load: "Gaegu:wght@700";
   --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
@@ -843,7 +843,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 /* 네컷 구름 · 민트 */
 [data-skin="cute-fourcut-mint"] {
   --bg: #cdeedd; --card: #ffffff; --ink: #1f3a30; --muted: #2c463b;
-  --green: #1a7a54; --green-ink: #166b49; --accent: #f2a900; --accent-ink: #8a5a00;
+  --green: #1a7a54; --green-ink: #166b49; --accent: #f2a900; --accent-ink: #714800;
   --on-fill: #ffffff; --primary: #1a7a54; --on-primary: #ffffff; --deco: "🍀";
   --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
          radial-gradient(rgba(255, 214, 90, .9) 2px, transparent 2.6px) 23px 17px / 46px 46px,
@@ -863,7 +863,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 /* 네컷 구름 · 보라 */
 [data-skin="cute-fourcut-lilac"] {
   --bg: #e2d0f3; --card: #ffffff; --ink: #2f2547; --muted: #41365c;
-  --green: #6a4fc9; --green-ink: #5a40b0; --accent: #f2a900; --accent-ink: #8a5a00;
+  --green: #6a4fc9; --green-ink: #5a40b0; --accent: #f2a900; --accent-ink: #714800;
   --on-fill: #ffffff; --primary: #6a4fc9; --on-primary: #ffffff; --deco: "💜";
   --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
          radial-gradient(rgba(255, 214, 90, .9) 2px, transparent 2.6px) 23px 17px / 46px 46px,
