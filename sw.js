@@ -1,5 +1,5 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v18';
+const VERSION = 'v19';
 const FONTS = 'fonts'; // 테마 글꼴(구글) — 앱을 업데이트해도 지우지 않는다
 const SHELL = [
   './', 'index.html', 'style.css', 'themes.css', 'app.js', 'manifest.webmanifest',

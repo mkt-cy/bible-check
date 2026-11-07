@@ -301,20 +301,6 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 }
 [data-skin="cute-clover"] :is(.top h1, .card h2, .card h3, .primary, .tabbar a) { font-weight: 700; }
 
-/* 아기자기 · 초코쿠키 */
-[data-skin="cute-choco"] {
-  --bg: #f6eadb; --card: #fffaf2; --ink: #3b2417; --muted: #74543f;
-  --green: #8b5a3c; --green-ink: #5e3620; --accent: #e86a8a; --accent-ink: #a8304f;
-  --on-fill: #ffffff; --primary: #4a2c1b; --on-primary: #fff3e3;
-  --deco: "🍪"; --display: "Jua", var(--font); --font-load: "Jua";
-  color-scheme: light;
-}
-[data-skin="cute-choco"][data-mode="dark"] {
-  --bg: #1f1510; --card: #2e2019; --ink: #f7e6d6; --muted: #c9a990;
-  --green: #d39a6e; --green-ink: #e0b08a; --accent: #ff8fab; --accent-ink: #ffa8be;
-  --on-fill: #1f1510; --primary: #e0b08a; --on-primary: #1f1510;
-  color-scheme: dark;
-}
 
 /* 아기자기 · 꿀곰 */
 [data-skin="cute-honey"] {
@@ -785,7 +771,69 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 [data-skin="sticker-gingham"] .top h1 { font-size: calc(36px * var(--fs)); }
 [data-skin="sticker-gingham"] .card { border-radius: 16px; }
 
+/* 행사 · 추수감사 (11월) — 호박·들판 색, 떨어지는 잎 무늬 */
+[data-skin="cute-thanks"] {
+  --bg: #fbf0e0; --card: #fffaf2; --ink: #3b2a1a; --muted: #6a5640;
+  --green: #a45a17; --green-ink: #8a4a10; --accent: #6b7d2a; --accent-ink: #55641f;
+  --on-fill: #ffffff; --primary: #8a4a10; --on-primary: #fff6e8;
+  --deco: "🌾"; --display: "Jua", var(--font); --font-load: "Jua";
+  --art: radial-gradient(rgba(214, 120, 40, .22) 2px, transparent 2.6px) 0 0 / 30px 30px,
+         radial-gradient(rgba(107, 125, 42, .18) 1.6px, transparent 2.2px) 15px 11px / 30px 30px, var(--bg);
+  color-scheme: light;
+}
+[data-skin="cute-thanks"][data-mode="dark"] {
+  --bg: #221a12; --card: #30251a; --ink: #fbeedd; --muted: #d0b99c;
+  --green: #f0a35a; --green-ink: #f5b77a; --accent: #b8c95f; --accent-ink: #c8d67e;
+  --on-fill: #221a12; --primary: #f0a35a; --on-primary: #221a12;
+  --art: radial-gradient(rgba(240, 163, 90, .22) 2px, transparent 2.6px) 0 0 / 30px 30px,
+         radial-gradient(rgba(184, 201, 95, .16) 1.6px, transparent 2.2px) 15px 11px / 30px 30px, var(--bg);
+  color-scheme: dark;
+}
+
+/* 리퀴드 글래스 · 살구 */
+[data-skin="glass-peach"] {
+  --bg: #fff3ec; --card: rgba(255, 255, 255, .56); --field: rgba(255, 255, 255, .7);
+  --ink: #3a2418; --muted: #6d4f3c;
+  --green: #b0501c; --green-ink: #974214; --accent: #d9701a; --accent-ink: #94470b;
+  --on-fill: #ffffff; --primary: #b0501c; --on-primary: #ffffff;
+  --green-soft: rgba(176, 80, 28, .12); --accent-soft: rgba(217, 112, 26, .13);
+  --art: radial-gradient(55% 45% at 12% 8%, #ffd2bd 0%, transparent 70%), radial-gradient(50% 40% at 92% 22%, #ffe9a8 0%, transparent 70%),
+         radial-gradient(60% 45% at 25% 82%, #ffc9c9 0%, transparent 70%), radial-gradient(45% 35% at 88% 90%, #ffe0c2 0%, transparent 70%), #fff3ec;
+  color-scheme: light;
+}
+[data-skin="glass-peach"][data-mode="dark"] {
+  --bg: #1c120d; --card: rgba(255, 255, 255, .08); --field: rgba(255, 255, 255, .1);
+  --ink: #fff0e6; --muted: #d4b5a2;
+  --green: #ff9e6b; --green-ink: #ffb48a; --accent: #ffc46b; --accent-ink: #ffd08a;
+  --on-fill: #2a1208; --primary: #ff9e6b; --on-primary: #2a1208;
+  --green-soft: rgba(255, 158, 107, .18); --accent-soft: rgba(255, 196, 107, .18);
+  --art: radial-gradient(55% 45% at 12% 8%, #6a2e18 0%, transparent 70%), radial-gradient(50% 40% at 92% 22%, #5a3a12 0%, transparent 70%),
+         radial-gradient(60% 45% at 25% 85%, #5a1f24 0%, transparent 70%), #1c120d;
+  color-scheme: dark;
+}
+
 /* ───────── 설정 · 디자인 고르기 화면 ───────── */
+.theme-cur { font-weight: 700; font-size: calc(14px * var(--fs)); color: var(--ink); }
+/* 디자인 묶음 탭 (좁으면 옆으로 밀어서) */
+.theme-tabs { display: flex; gap: 4px; margin: 0 0 12px; padding: 2px 0 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.theme-tabs::-webkit-scrollbar { display: none; }
+.theme-tabs button {
+  flex: 1 0 auto; min-height: 40px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--field); color: var(--muted); font-weight: 600;
+}
+.theme-tabs button.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.skins + .hint { margin-top: 10px; }
+.skin small { display: block; font-weight: 400; font-size: calc(11px * var(--fs)); color: var(--muted); }
+/* 유리 색 */
+.glass-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0 0 4px; }
+.glass-colors button {
+  display: flex; flex-direction: column; gap: 4px; align-items: stretch; min-width: 0; padding: 5px 5px 7px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: calc(12px * var(--fs)); font-weight: 600;
+}
+.glass-colors .sw { height: 34px; border-radius: 8px; }
+.glass-colors .sw i { display: none; }
+.glass-colors button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); color: var(--accent-ink); }
+.skins { margin-bottom: 4px; }
 .theme-now { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .theme-now .sw { flex: none; width: 92px; }
 .theme-now b { display: block; font-size: calc(16px * var(--fs)); }

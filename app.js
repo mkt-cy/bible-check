@@ -10,19 +10,26 @@ const MODES = {
 };
 
 const THEMES = { auto: '자동', light: '밝게', dark: '어둡게' };
-// 디자인 테마 목록 (색·모양은 themes.css). 이름 앞머리 cute-/glass-/sharp-/sticker-가 모양을 정한다
+// 디자인 테마 목록 (색·모양은 themes.css). 이름 앞머리 cute-/glass-/sharp-/sticker-/edit-/retro-가 모양을 정한다
 const SKIN_GROUPS = [
-  { name: '기본', items: { classic: '통독표', 'sharp-founder': 'FounderOS', 'glass-liquid': '리퀴드 글래스' } },
+  { name: '기본', items: { classic: '통독표', 'sharp-founder': '무채색', 'glass-liquid': '리퀴드 글래스' } },
   { name: '아기자기', items: {
     'cute-strawberry': '딸기우유', 'cute-lemon': '레몬소다', 'cute-cloud': '구름사탕', 'cute-peach': '복숭아', 'cute-clover': '네잎클로버',
-    'cute-choco': '초코쿠키', 'cute-honey': '꿀곰', 'cute-fourcut': '네컷 구름', 'sticker-gingham': '깅엄 다이어리', 'sticker-book': '스티커북',
+    'cute-honey': '꿀곰', 'cute-fourcut': '네컷 구름', 'sticker-gingham': '깅엄 다이어리', 'sticker-book': '스티커북',
   } },
-  { name: '모던', items: { 'edit-slate': '갤러리', 'edit-sand': '모래 갤러리', 'glass-dusk': '어스름', 'glass-aurora': '오로라', 'sharp-terminal': '터미널' } },
-  { name: '레트로', items: { 'retro-soap': '비누공방', 'retro-citrus': '감귤 레트로' } },
+  { name: '모던', items: { 'edit-slate': '갤러리', 'edit-sand': '모래 갤러리', 'retro-soap': '비누공방', 'retro-citrus': '감귤 레트로', 'sharp-terminal': '터미널' } },
   { name: '차분한', items: { forest: '숲속 아침', ocean: '제주 바다', sunset: '저녁 노을', lavender: '라벤더', midnight: '새벽 기도', paper: '성경책' } },
-  { name: '계절', items: { 'cute-christmas': '성탄', 'glass-sakura': '벚꽃 유리' } },
+  { name: '행사', items: { 'cute-thanks': '추수감사', 'cute-christmas': '성탄' } },
 ];
-const SKINS = Object.assign({}, ...SKIN_GROUPS.map((g) => g.items));
+// 리퀴드 글래스는 한 칸이고, 고르면 아래에 유리 색이 나온다 (첫 번째가 기본)
+const GLASS_COLORS = { 'glass-liquid': '블루', 'glass-sakura': '벚꽃', 'glass-aurora': '오로라', 'glass-dusk': '어스름', 'glass-peach': '살구' };
+// 행사 디자인: 교회 행사 때마다 새로 넣는다. until이 지나면 고르는 목록에서 빠진다 (이미 고른 사람은 그대로 쓴다)
+const EVENTS = {
+  'cute-thanks': { until: '2026-11-30', note: '11월 추수감사절' },
+  'cute-christmas': { until: '2026-12-31', note: '12월 성탄절' },
+};
+const SKINS = Object.assign({}, ...SKIN_GROUPS.map((g) => g.items), Object.fromEntries(Object.entries(GLASS_COLORS).map(([k, v]) => [k, `리퀴드 글래스 · ${v}`])));
+const groupOf = (skin) => skin.startsWith('glass-') ? '기본' : SKIN_GROUPS.find((g) => g.items[skin])?.name ?? '기본';
 const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid' }; // 사본 시험판에서 쓰던 이름
 const FS = { min: 0.85, max: 1.6, step: 0.05 }; // 글자 크기 배율 범위 (85% ~ 160%, 5%씩)
 
@@ -295,11 +302,10 @@ function render() {
     return;
   }
   const route = location.hash.replace('#/', '') || 'home';
-  const tab = route === 'themes' ? 'settings' : route;
-  document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
+  document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === route));
   // 영상이 재생 중일 때 다시 그리면 처음으로 돌아가 버린다 → 설교 화면은 한 번만 그린다
   if (route === 'sermons' && S.church?.sermons && $('#app .sermons')) return;
-  const view = { home: viewHome, plan: viewPlan, sermons: viewSermons, settings: viewSettings, themes: viewThemes }[route] ?? viewHome;
+  const view = { home: viewHome, plan: viewPlan, sermons: viewSermons, settings: viewSettings }[route] ?? viewHome;
   preservingNote(() => {
     $('#app').innerHTML = view();
     if (S.sheetDay) renderSheet();
@@ -645,9 +651,7 @@ function viewSettings() {
 
     <section class="card">
       <h3>화면</h3>
-      <p class="seg-label">디자인</p>
-      ${themeNow()}
-      <p class="seg-label">밝기</p>
+      ${themePicker()}
       <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
       ${fontSizer()}
     </section>
@@ -752,37 +756,28 @@ async function saveName(input) {
 /** 테마 미리보기 그림: 그 테마의 data-skin을 붙여 진짜 색으로 그린다 */
 const swatch = (v) => `<span class="sw" data-skin="${v}" data-mode="${document.documentElement.dataset.mode}" aria-hidden="true"><i class="c"></i><i class="b"></i><i class="e"></i><i class="d"></i></span>`;
 
-function themeNow() {
+function themePicker() {
   const cur = document.documentElement.dataset.skin;
-  return `
-    <div class="theme-now">
-      ${swatch(cur)}
-      <div><b>${esc(SKINS[cur])}</b><small>${Object.keys(SKINS).length}가지 중에서 골라요</small></div>
-      <a class="secondary" href="#/themes">바꾸기</a>
-    </div>`;
-}
-
-function viewThemes() {
-  const cur = document.documentElement.dataset.skin;
-  const grid = (items) => Object.entries(items)
-    .map(([v, name]) => `<button class="skin ${cur === v ? 'on' : ''}" data-act="look" data-key="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${esc(name)}</button>`)
+  const tab = S.themeTab ?? groupOf(cur);
+  const today = dateKey();
+  const group = SKIN_GROUPS.find((g) => g.name === tab) ?? SKIN_GROUPS[0];
+  const items = Object.entries(group.items).filter(([v]) => !EVENTS[v] || EVENTS[v].until >= today);
+  const isOn = (v) => (v === 'glass-liquid' ? cur.startsWith('glass-') : cur === v);
+  const shown = (v) => (v === 'glass-liquid' && cur.startsWith('glass-') ? cur : v); // 글래스 칸은 지금 고른 유리 색으로 보인다
+  const grid = items
+    .map(([v, name]) => `<button class="skin ${isOn(v) ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${isOn(v)}">${swatch(shown(v))}${esc(name)}${EVENTS[v] ? `<small>${EVENTS[v].note}</small>` : ''}</button>`)
     .join('');
+  const glass = cur.startsWith('glass-') && group.name === '기본' ? `
+    <p class="seg-label">유리 색</p>
+    <div class="glass-colors" role="group" aria-label="유리 색">${Object.entries(GLASS_COLORS)
+      .map(([v, name]) => `<button class="${cur === v ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${name}</button>`).join('')}</div>` : '';
   return `
-    <header class="top">
-      <a class="link back" href="#/settings">← 설정</a>
-      <p class="eyebrow">마음에 드는 옷을 골라요</p>
-      <h1>디자인</h1>
-    </header>
-    <section class="card">
-      <p class="seg-label">밝기 — 모든 디자인에 밝게·어둡게가 있어요</p>
-      <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
-      <p class="hint">누르면 바로 바뀌어요. 마음에 들 때까지 이것저것 눌러 보세요.</p>
-    </section>
-    ${SKIN_GROUPS.map((g) => `
-      <h2 class="theme-group">${g.name}<small>${Object.keys(g.items).length}</small></h2>
-      <div class="skins" role="group" aria-label="${g.name}">${grid(g.items)}</div>`).join('')}
-    <p class="foot" style="margin-top:24px">글자 크기는 설정에서 바꿀 수 있어요</p>
-  `;
+    <div class="fs-head"><p class="seg-label">디자인</p><span class="theme-cur">${esc(SKINS[cur])}</span></div>
+    <div class="theme-tabs" role="tablist">${SKIN_GROUPS.map((g) => `<button role="tab" class="${g.name === group.name ? 'on' : ''}" aria-selected="${g.name === group.name}" data-act="themeTab" data-value="${g.name}">${g.name}</button>`).join('')}</div>
+    <div class="skins" role="group" aria-label="${group.name}">${grid || '<p class="hint">다음 교회 행사 때 새 디자인이 찾아와요</p>'}</div>
+    ${group.name === '행사' ? '<p class="hint">교회 행사 때마다 새 디자인이 생겨요. 행사가 끝나면 목록에서 빠져요.</p>' : ''}
+    ${glass}
+    <p class="seg-label" style="margin-top:16px">밝기 — 모든 디자인에 밝게·어둡게가 있어요</p>`;
 }
 
 function fontSizer() {
@@ -954,6 +949,21 @@ const actions = {
   },
   look(el) {
     setLook(el.dataset.key, el.dataset.value);
+    render();
+  },
+  skin(el) {
+    let v = el.dataset.value;
+    // 글래스 칸을 누르면 마지막으로 고른 유리 색으로
+    if (v === 'glass-liquid' && !el.closest('.glass-colors')) {
+      try { v = localStorage.getItem('glassColor') || v; } catch {}
+      if (!GLASS_COLORS[v]) v = 'glass-liquid';
+    }
+    if (v.startsWith('glass-')) try { localStorage.setItem('glassColor', v); } catch {}
+    setLook('skin', v);
+    render();
+  },
+  themeTab(el) {
+    S.themeTab = el.dataset.value;
     render();
   },
   fsStep(el) {
