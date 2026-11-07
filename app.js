@@ -3,7 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
-const APP_VERSION = 'v21'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
+const APP_VERSION = 'v23'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -21,18 +21,18 @@ const DESIGN_TABS = [
   ] },
   { name: '아기자기', designs: [
     { name: '말랑', colors: { 'cute-strawberry': '딸기', 'cute-lemon': '레몬', 'cute-cloud': '구름', 'cute-peach': '복숭아', 'cute-clover': '클로버', 'cute-honey': '꿀곰' } },
-    { name: '스티커북', colors: { 'sticker-book': '하늘', 'sticker-gingham': '깅엄' } },
-    { name: '네컷 구름', colors: { 'cute-fourcut': '분홍', 'cute-fourcut-sky': '하늘' } },
+    { name: '스티커북', colors: { 'sticker-book': '하늘', 'sticker-gingham': '깅엄', 'sticker-mint': '민트', 'sticker-lilac': '라일락' } },
+    { name: '네컷 구름', colors: { 'cute-fourcut': '분홍', 'cute-fourcut-sky': '하늘', 'cute-fourcut-mint': '민트', 'cute-fourcut-lilac': '보라' } },
   ] },
   { name: '모던', designs: [
-    { name: '무채색', colors: { 'sharp-founder': '흑백', 'sharp-terminal': '터미널' } },
-    { name: '갤러리', colors: { 'edit-slate': '슬레이트', 'edit-sand': '모래' } },
-    { name: '레트로', colors: { 'retro-soap': '비누공방', 'retro-citrus': '감귤' } },
+    { name: '무채색', colors: { 'sharp-founder': '흑백', 'sharp-graphite': '그래파이트', 'sharp-navy': '네이비', 'sharp-terminal': '터미널' } },
+    { name: '갤러리', colors: { 'edit-slate': '슬레이트', 'edit-sand': '모래', 'edit-sage': '세이지', 'edit-rose': '로즈' } },
+    { name: '레트로', colors: { 'retro-soap': '비누공방', 'retro-citrus': '감귤', 'retro-plum': '자두', 'retro-teal': '청록' } },
   ] },
   { name: '차분한', designs: [
-    { name: '아침', colors: { forest: '숲속', ocean: '제주 바다' } },
-    { name: '저녁', colors: { sunset: '노을', lavender: '라벤더' } },
-    { name: '새벽', colors: { midnight: '새벽 기도', starlight: '별빛' } },
+    { name: '아침', colors: { forest: '숲속', ocean: '제주 바다', meadow: '들판', sky: '맑은 하늘' } },
+    { name: '저녁', colors: { sunset: '노을', lavender: '라벤더', rosewood: '장미', amber: '호박빛' } },
+    { name: '새벽', colors: { midnight: '새벽 기도', starlight: '별빛', dawn: '동틀녘', deepsea: '깊은 바다' } },
   ] },
 ];
 const DESIGNS = DESIGN_TABS.flatMap((t) => t.designs.map((d) => ({ ...d, tab: t.name })));
@@ -823,15 +823,15 @@ function themePicker() {
   const curDesign = designOf(cur);
   const tab = DESIGN_TABS.find((t) => t.name === (S.themeTab ?? curDesign.tab)) ?? DESIGN_TABS[0];
   const cards = tab.designs.map((d) => {
-    const on = d === curDesign;
+    const on = d.name === curDesign.name; // DESIGNS는 탭 이름을 붙인 복사본이라 이름으로 비교
     const look = on ? cur : designPick(d); // 고른 디자인은 지금 색으로, 나머지는 그 디자인에서 고를 색으로 보인다
     const n = Object.keys(d.colors).length;
     return `<button class="skin ${on ? 'on' : ''}" data-act="design" data-value="${esc(d.name)}" aria-pressed="${on}">${swatch(look)}${esc(d.name)}${n > 1 ? `<small>${n}가지 색</small>` : ''}</button>`;
   }).join('');
   const colors = Object.entries(curDesign.colors);
   const colorRow = curDesign.tab === tab.name && colors.length > 1 ? `
-    <p class="seg-label">${esc(curDesign.name)} 색</p>
-    <div class="colors" style="--cols:${colors.length <= 5 ? colors.length : 3}" role="group" aria-label="${esc(curDesign.name)} 색">${colors
+    <p class="seg-label">색 고르기 · ${esc(curDesign.name)}</p>
+    <div class="colors" role="group" aria-label="${esc(curDesign.name)} 색">${colors
       .map(([v, name]) => `<button class="${cur === v ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${esc(name)}</button>`).join('')}</div>` : '';
   return `
     <div class="fs-head"><p class="seg-label">디자인</p><span class="theme-cur">${esc(SKINS[cur])}</span></div>
@@ -887,7 +887,7 @@ function closeSheet() {
 
 function renderSheet() {
   if (S.sheetDay === 'fb') {
-    $('.sheet-panel').innerHTML = `<div class="grip"></div><h2 id="sheet-title">의견 보내기</h2>${feedbackForm()}<button class="link close" data-close>닫기</button>`;
+    $('.sheet-panel').innerHTML = `<div class="grip-zone" role="button" tabindex="0" aria-label="닫기 (아래로 끌어내려도 닫혀요)"><span class="grip"></span></div><h2 id="sheet-title">의견 보내기</h2>${feedbackForm()}<button class="link close" data-close>닫기</button>`;
     return;
   }
   const d = day(S.sheetDay);
@@ -895,7 +895,7 @@ function renderSheet() {
   const state = dayState(d, rec);
   const fillable = daysToFill(S.plan, S.recs, d.n).filter((x) => x.n !== d.n).length > 0;
   $('.sheet-panel').innerHTML = `
-    <div class="grip"></div>
+    <div class="grip-zone" role="button" tabindex="0" aria-label="닫기 (아래로 끌어내려도 닫혀요)"><span class="grip"></span></div>
     <p class="kicker">${weekOf(d.n)}주 · ${longDate(d.date)}</p>
     <h2 id="sheet-title">${label(d)}</h2>
     ${rec?.readOn ? `<p class="meta">마지막으로 읽은 날 ${longDate(rec.readOn)}</p>` : ''}
@@ -1160,7 +1160,47 @@ document.addEventListener('change', async (e) => {
   }
 });
 
+// 시트 손잡이: 누르면 닫히고, 아래로 끌면 손가락을 따라 내려오다가 충분히 내리면 닫힌다 (덜 내리면 제자리로)
+let drag = null;
+document.addEventListener('pointerdown', (e) => {
+  const zone = e.target.closest('.grip-zone');
+  if (!zone) return;
+  const panel = zone.closest('.sheet-panel');
+  zone.setPointerCapture?.(e.pointerId);
+  drag = { y0: e.clientY, t0: Date.now(), dy: 0, panel, backdrop: $('.sheet-backdrop') };
+  panel.style.transition = 'none';
+});
+document.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  drag.dy = Math.max(0, e.clientY - drag.y0);
+  drag.panel.style.transform = `translateY(${drag.dy}px)`;
+  drag.backdrop.style.opacity = String(Math.max(0.2, 1 - drag.dy / 400));
+});
+function endDrag() {
+  if (!drag) return;
+  const { panel, backdrop, dy, t0 } = drag;
+  drag = null;
+  const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5; // 휙 내리면 짧게 끌어도 닫힌다
+  const reset = () => { panel.style.transition = ''; panel.style.transform = ''; backdrop.style.transition = ''; backdrop.style.opacity = ''; };
+  const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (dy < 6 || dy > 90 || fast) {
+    // 누름(거의 안 움직임) 또는 충분히 내림 → 아래로 내려가며 닫기
+    panel.style.transition = backdrop.style.transition = quiet ? 'none' : 'transform .2s ease-in, opacity .2s ease-in';
+    panel.style.transform = 'translateY(100%)';
+    backdrop.style.opacity = '0';
+    setTimeout(() => { userCloseSheet(); reset(); }, quiet ? 0 : 200);
+  } else {
+    panel.style.transition = 'transform .2s ease-out';
+    panel.style.transform = '';
+    backdrop.style.opacity = '';
+    setTimeout(reset, 220);
+  }
+}
+document.addEventListener('pointerup', endDrag);
+document.addEventListener('pointercancel', endDrag);
+
 document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('.grip-zone')) { e.preventDefault(); return userCloseSheet(); }
   if (e.key === 'Escape' && S.sheetDay) userCloseSheet();
   if (e.key === 'Enter' && e.target.dataset?.act === 'note') e.target.blur();
   if (e.key === 'Enter' && e.target.dataset?.act === 'name' && !e.isComposing) {

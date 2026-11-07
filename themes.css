@@ -813,6 +813,263 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: dark;
 }
 
+/* ───────── 색 추가 (11-08: 색이 2개였던 디자인에 2개씩) ───────── */
+/* 스티커북 · 민트 */
+[data-skin="sticker-mint"] {
+  --bg: #d7f5e6; --card: #ffffff; --ink: #000000; --muted: #2f3a34;
+  --line: #000000; --green: #0f7a52; --green-ink: #0b6b47; --accent: #fb4903;
+  --accent-ink: #b83300; --on-fill: #ffffff; --primary: #000000; --on-primary: #ffffff;
+  --chip: #e9e9e9; --green-soft: #c8f2dd; --done-line: #000000; --wash-1: #d7f5e6;
+  --wash-2: #fff1b8; --wash-3: #e9ccff; --sun: #ffd731; --ember: #fb4903;
+  --blue: #55db9c;
+  color-scheme: light;
+}
+[data-skin="sticker-mint"][data-mode="dark"] {
+  --bg: #0c1411; --card: #16201b; --ink: #ffffff; --muted: #c4cec8;
+  --line: #ffffff; --green: #5fe0a6; --green-ink: #7fe9b8; --accent: #ff7a3d;
+  --accent-ink: #ff9a6b; --on-fill: #000000; --primary: #ffffff; --on-primary: #000000;
+  --chip: #24302a; --green-soft: #16352a; --done-line: #ffffff; --wash-1: #13261f;
+  --wash-2: #2e2a14; --wash-3: #2a1f3d; --sun: #ffd731; --ember: #fb4903;
+  --blue: #55db9c;
+  color-scheme: dark;
+}
+
+/* 스티커북 · 라일락 */
+[data-skin="sticker-lilac"] {
+  --bg: #efe2ff; --card: #ffffff; --ink: #000000; --muted: #3a3346;
+  --line: #000000; --green: #5c4ade; --green-ink: #4a39c9; --accent: #d6246e;
+  --accent-ink: #b01d5a; --on-fill: #ffffff; --primary: #000000; --on-primary: #ffffff;
+  --chip: #e9e9e9; --green-soft: #e2d9ff; --done-line: #000000; --wash-1: #efe2ff;
+  --wash-2: #ffd9ec; --wash-3: #dceeff; --sun: #ffd731; --ember: #ff5fa2;
+  --blue: #5c4ade;
+  color-scheme: light;
+}
+[data-skin="sticker-lilac"][data-mode="dark"] {
+  --bg: #120d1a; --card: #1c1626; --ink: #ffffff; --muted: #cbc4d6;
+  --line: #ffffff; --green: #a99cff; --green-ink: #c0b6ff; --accent: #ff6fa8;
+  --accent-ink: #ff94bf; --on-fill: #000000; --primary: #ffffff; --on-primary: #000000;
+  --chip: #2a2236; --green-soft: #2a2245; --done-line: #ffffff; --wash-1: #241a35;
+  --wash-2: #351a2a; --wash-3: #16263d; --sun: #ffd731; --ember: #ff5fa2;
+  --blue: #a99cff;
+  color-scheme: dark;
+}
+
+/* 네컷 구름 · 민트 */
+[data-skin="cute-fourcut-mint"] {
+  --bg: #cdeedd; --card: #ffffff; --ink: #1f3a30; --muted: #2c463b;
+  --green: #1a7a54; --green-ink: #166b49; --accent: #f2a900; --accent-ink: #8a5a00;
+  --on-fill: #ffffff; --primary: #1a7a54; --on-primary: #ffffff; --deco: "🍀";
+  --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .9) 2px, transparent 2.6px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #b6ecd6 0%, #d9f2c9 50%, #fdf3b5 100%);
+  color-scheme: light;
+  --display: "Gaegu", var(--font); --font-load: "Gaegu:wght@700";
+}
+[data-skin="cute-fourcut-mint"][data-mode="dark"] {
+  --bg: #13241d; --card: #1e3229; --ink: #e6f7ee; --muted: #a9cdbb;
+  --green: #6fdcaa; --green-ink: #8be6bb; --accent: #ffd35a; --accent-ink: #ffdd80;
+  --on-fill: #0b2016; --primary: #6fdcaa; --on-primary: #0b2016; --art: radial-gradient(rgba(255, 255, 255, .5) 1.4px, transparent 1.8px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .6) 1.8px, transparent 2.4px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #1d4a3a 0%, #22382c 50%, #2e3324 100%);
+  color-scheme: dark;
+}
+
+/* 네컷 구름 · 보라 */
+[data-skin="cute-fourcut-lilac"] {
+  --bg: #e2d0f3; --card: #ffffff; --ink: #2f2547; --muted: #41365c;
+  --green: #6a4fc9; --green-ink: #5a40b0; --accent: #f2a900; --accent-ink: #8a5a00;
+  --on-fill: #ffffff; --primary: #6a4fc9; --on-primary: #ffffff; --deco: "💜";
+  --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .9) 2px, transparent 2.6px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #d4c2f5 0%, #f1c6e6 50%, #ffe4c4 100%);
+  color-scheme: light;
+  --display: "Gaegu", var(--font); --font-load: "Gaegu:wght@700";
+}
+[data-skin="cute-fourcut-lilac"][data-mode="dark"] {
+  --bg: #1f1a33; --card: #2c2545; --ink: #f0eaff; --muted: #c3b8e0;
+  --green: #b39dff; --green-ink: #c6b5ff; --accent: #ffd35a; --accent-ink: #ffdd80;
+  --on-fill: #1a1233; --primary: #b39dff; --on-primary: #1a1233; --art: radial-gradient(rgba(255, 255, 255, .5) 1.4px, transparent 1.8px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .6) 1.8px, transparent 2.4px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #3a2a6a 0%, #3d2440 50%, #2e2433 100%);
+  color-scheme: dark;
+}
+
+/* 무채색 · 그래파이트 */
+[data-skin="sharp-graphite"] {
+  --bg: #eceae6; --card: #f8f7f4; --ink: #1c1b19; --muted: #57544e;
+  --line: #dcd9d3; --green: #3d5a4a; --green-ink: #33503f; --accent: #1c1b19;
+  --accent-ink: #45423c; --on-fill: #ffffff; --primary: #1c1b19; --on-primary: #f8f7f4;
+  color-scheme: light;
+}
+[data-skin="sharp-graphite"][data-mode="dark"] {
+  --bg: #161514; --card: #1e1d1b; --ink: #ecebe7; --muted: #a8a59e;
+  --line: #2e2d2a; --green: #8fc4a4; --green-ink: #a3d1b5; --accent: #ecebe7;
+  --accent-ink: #d4d2cc; --on-fill: #161514; --primary: #ecebe7; --on-primary: #161514;
+  color-scheme: dark;
+}
+
+/* 무채색 · 네이비 */
+[data-skin="sharp-navy"] {
+  --bg: #eef0f4; --card: #ffffff; --ink: #0d1b2e; --muted: #4d5a6b;
+  --line: #e0e4ea; --green: #1f6f8b; --green-ink: #1a5f78; --accent: #0d1b2e;
+  --accent-ink: #34465c; --on-fill: #ffffff; --primary: #0d1b2e; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="sharp-navy"][data-mode="dark"] {
+  --bg: #070d17; --card: #0d1524; --ink: #e8eef7; --muted: #9fadc0;
+  --line: #1c2638; --green: #5cc2e0; --green-ink: #7ccfe8; --accent: #e8eef7;
+  --accent-ink: #c8d2df; --on-fill: #070d17; --primary: #e8eef7; --on-primary: #070d17;
+  color-scheme: dark;
+}
+
+/* 갤러리 · 세이지 */
+[data-skin="edit-sage"] {
+  --bg: #a9b5a0; --card: #eeefea; --field: #f5f6f2; --ink: #1b211a;
+  --muted: #2e362c; --line: #cfd3c8; --green: #4a5e46; --green-ink: #3f513c;
+  --accent: #2f3d2c; --accent-ink: #2f3d2c; --on-fill: #ffffff; --primary: #263024;
+  --on-primary: #eeefea; --tabbar-bg: #eeefea;
+  color-scheme: light;
+}
+[data-skin="edit-sage"][data-mode="dark"] {
+  --bg: #191d18; --card: #242922; --field: #2a3027; --ink: #e7eae3;
+  --muted: #a9b3a4; --line: #384035; --green: #a9c2a0; --green-ink: #bcd0b4;
+  --accent: #cfdcc9; --accent-ink: #cfdcc9; --on-fill: #191d18; --primary: #e7eae3;
+  --on-primary: #191d18; --tabbar-bg: #242922;
+  color-scheme: dark;
+}
+
+/* 갤러리 · 로즈 */
+[data-skin="edit-rose"] {
+  --bg: #c9aeb0; --card: #f3eeee; --field: #f8f5f5; --ink: #2a1f21;
+  --muted: #3d2e31; --line: #e0d4d5; --green: #7a4f57; --green-ink: #6a434a;
+  --accent: #4a2f34; --accent-ink: #4a2f34; --on-fill: #ffffff; --primary: #2a1f21;
+  --on-primary: #f3eeee; --tabbar-bg: #f3eeee;
+  color-scheme: light;
+}
+[data-skin="edit-rose"][data-mode="dark"] {
+  --bg: #1f1819; --card: #2b2223; --field: #31282a; --ink: #f0e7e8;
+  --muted: #bfa9ac; --line: #3f3335; --green: #d6a9b0; --green-ink: #e0bcc2;
+  --accent: #e6cdd1; --accent-ink: #e6cdd1; --on-fill: #1f1819; --primary: #f0e7e8;
+  --on-primary: #1f1819; --tabbar-bg: #2b2223;
+  color-scheme: dark;
+}
+
+/* 레트로 · 자두 */
+[data-skin="retro-plum"] {
+  --bg: #f6e6ea; --card: #fff6f8; --ink: #2e1a24; --muted: #654a56;
+  --green: #8a3a5c; --green-ink: #76304e; --accent: #c97f12; --accent-ink: #8a560a;
+  --on-fill: #ffffff; --primary: #6e2a48; --on-primary: #ffffff; --wash-2: #f3d9e3;
+  --wash-3: #fbe7c0; --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10'%3E%3Cpath d='M0 5 Q6 0 12 5 T24 5' fill='none' stroke='%23c97f12' stroke-width='2.5'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+[data-skin="retro-plum"][data-mode="dark"] {
+  --bg: #1f151a; --card: #2c1e25; --ink: #f8e6ee; --muted: #cfb0bd;
+  --green: #e58fb2; --green-ink: #eda6c3; --accent: #ffbd5a; --accent-ink: #ffcb7f;
+  --on-fill: #1f151a; --primary: #e58fb2; --on-primary: #1f151a; --wash-2: #3a2230;
+  --wash-3: #3a3020; --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10'%3E%3Cpath d='M0 5 Q6 0 12 5 T24 5' fill='none' stroke='%23ffbd5a' stroke-width='2.5'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+/* 레트로 · 청록 */
+[data-skin="retro-teal"] {
+  --bg: #e5f0ea; --card: #f6fbf8; --ink: #13302a; --muted: #46625a;
+  --green: #1d6b5c; --green-ink: #175a4d; --accent: #d9643a; --accent-ink: #a3441d;
+  --on-fill: #ffffff; --primary: #134a40; --on-primary: #f6fbf8; --wash-2: #cfe6dc;
+  --wash-3: #fbe2d3; --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10'%3E%3Cpath d='M0 5 Q6 0 12 5 T24 5' fill='none' stroke='%23d9643a' stroke-width='2.5'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+[data-skin="retro-teal"][data-mode="dark"] {
+  --bg: #10201c; --card: #182c27; --ink: #e4f3ec; --muted: #a3c4b8;
+  --green: #6fcfb6; --green-ink: #8bdac5; --accent: #ff9a70; --accent-ink: #ffb08f;
+  --on-fill: #10201c; --primary: #6fcfb6; --on-primary: #10201c; --wash-2: #1d3a31;
+  --wash-3: #3a2a20; --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='10'%3E%3Cpath d='M0 5 Q6 0 12 5 T24 5' fill='none' stroke='%23ff9a70' stroke-width='2.5'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+
+/* 아침 · 들판 */
+[data-skin="meadow"] {
+  --bg: #f1f4e4; --card: #fdfef6; --ink: #26301a; --muted: #5a6347;
+  --green: #557a1f; --green-ink: #45651a; --accent: #c9961a; --accent-ink: #7f5c0a;
+  --on-fill: #ffffff; --primary: #2c3a1a; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="meadow"][data-mode="dark"] {
+  --bg: #151a0f; --card: #1e2516; --ink: #eef3df; --muted: #b0ba98;
+  --green: #a8d15f; --green-ink: #bbdc80; --accent: #f0c75e; --accent-ink: #f4d483;
+  --on-fill: #151a0f; --primary: #eef3df; --on-primary: #151a0f;
+  color-scheme: dark;
+}
+
+/* 아침 · 맑은 하늘 */
+[data-skin="sky"] {
+  --bg: #e8f1fb; --card: #fdfeff; --ink: #12304d; --muted: #4c6580;
+  --green: #2563a8; --green-ink: #1f5591; --accent: #e8913a; --accent-ink: #a3560f;
+  --on-fill: #ffffff; --primary: #12304d; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="sky"][data-mode="dark"] {
+  --bg: #0b1726; --card: #122236; --ink: #e3eefa; --muted: #9fb6cf;
+  --green: #7fb6f0; --green-ink: #9cc7f4; --accent: #ffb36b; --accent-ink: #ffc58c;
+  --on-fill: #0b1726; --primary: #e3eefa; --on-primary: #0b1726;
+  color-scheme: dark;
+}
+
+/* 저녁 · 장미 */
+[data-skin="rosewood"] {
+  --bg: #f6ecec; --card: #fffafa; --ink: #3a2226; --muted: #74575c;
+  --green: #a14a5a; --green-ink: #8c3d4c; --accent: #b07a4a; --accent-ink: #7f5229;
+  --on-fill: #ffffff; --primary: #3a2226; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="rosewood"][data-mode="dark"] {
+  --bg: #1e1416; --card: #2b1d20; --ink: #f6e6e8; --muted: #c8a9ae;
+  --green: #e892a3; --green-ink: #eeabb8; --accent: #e0b086; --accent-ink: #e8c19e;
+  --on-fill: #1e1416; --primary: #f6e6e8; --on-primary: #1e1416;
+  color-scheme: dark;
+}
+
+/* 저녁 · 호박빛 */
+[data-skin="amber"] {
+  --bg: #f8efe2; --card: #fffaf2; --ink: #35260f; --muted: #6d5a3e;
+  --green: #a0621a; --green-ink: #8a5414; --accent: #6a5aa0; --accent-ink: #54478a;
+  --on-fill: #ffffff; --primary: #35260f; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="amber"][data-mode="dark"] {
+  --bg: #1d160c; --card: #2a2012; --ink: #f7ead6; --muted: #cdb998;
+  --green: #f0b05a; --green-ink: #f4c27f; --accent: #b3a6f0; --accent-ink: #c4b9f4;
+  --on-fill: #1d160c; --primary: #f7ead6; --on-primary: #1d160c;
+  color-scheme: dark;
+}
+
+/* 새벽 · 동틀녘 */
+[data-skin="dawn"] {
+  --bg: #f3eef6; --card: #fffcff; --ink: #2a2238; --muted: #635a75;
+  --green: #7a4f9a; --green-ink: #684186; --accent: #d6735a; --accent-ink: #a34a33;
+  --on-fill: #ffffff; --primary: #2a2238; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="dawn"][data-mode="dark"] {
+  --bg: #151020; --card: #20192e; --ink: #efe8f6; --muted: #b4a8c6;
+  --green: #c39be6; --green-ink: #d1b1ee; --accent: #f2a08a; --accent-ink: #f5b5a3;
+  --on-fill: #151020; --primary: #efe8f6; --on-primary: #151020;
+  color-scheme: dark;
+}
+
+/* 새벽 · 깊은 바다 */
+[data-skin="deepsea"] {
+  --bg: #e9f1f1; --card: #fbfefe; --ink: #0f2a2e; --muted: #4a6366;
+  --green: #1b6670; --green-ink: #16575f; --accent: #b08a3e; --accent-ink: #7a5d1f;
+  --on-fill: #ffffff; --primary: #0f2a2e; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="deepsea"][data-mode="dark"] {
+  --bg: #061416; --card: #0d2124; --ink: #e0f0f0; --muted: #9bb9bb;
+  --green: #5fc4cf; --green-ink: #7fd1da; --accent: #e2c27a; --accent-ink: #e9cf95;
+  --on-fill: #061416; --primary: #e0f0f0; --on-primary: #061416;
+  color-scheme: dark;
+}
+
 /* ───────── 설정 · 디자인 고르기 화면 ───────── */
 .theme-cur { font-weight: 700; font-size: calc(14px * var(--fs)); color: var(--ink); }
 /* 디자인 묶음 탭 (좁으면 옆으로 밀어서) */
@@ -826,7 +1083,7 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 .skins + .hint { margin-top: 10px; }
 .skin small { display: block; font-weight: 400; font-size: calc(11px * var(--fs)); color: var(--muted); }
 /* 유리 색 */
-.colors { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 6px; margin: 0 0 4px; }
+.colors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0 0 4px; }
 .colors button {
   display: flex; flex-direction: column; gap: 4px; align-items: stretch; min-width: 0; padding: 5px 5px 7px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: calc(12px * var(--fs)); font-weight: 600;
