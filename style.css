@@ -31,29 +31,7 @@
   color-scheme: light;
 }
 
-/* 어두운 화면: 설정 '자동'이면 폰 설정을 따르고, '어둡게'면 항상 */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #141f27; --card: #1c2a34; --field: #16232c;
-    --ink: #ece4d8; --muted: #a3b0b8; --line: #2e3e49;
-    --green: #93b489; --green-ink: #93b489; --green-soft: #22342a; --done-line: #3b5540;
-    --accent: #e8956a; --accent-ink: #e8956a; --accent-soft: #33261f; --extra-line: #5a3b2a;
-    --chip: #24333d; --on-fill: #141f27; --primary: #ece4d8; --on-primary: #141f27;
-    --warn-ink: #f0b48f; --tabbar-bg: rgba(20, 31, 39, .94); --backdrop: rgba(0, 0, 0, .55);
-    --confetti-1: #93b489; --confetti-2: #e8956a; --confetti-3: #f0c75e; --confetti-4: #8fb8dc;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #141f27; --card: #1c2a34; --field: #16232c;
-  --ink: #ece4d8; --muted: #a3b0b8; --line: #2e3e49;
-  --green: #93b489; --green-ink: #93b489; --green-soft: #22342a; --done-line: #3b5540;
-  --accent: #e8956a; --accent-ink: #e8956a; --accent-soft: #33261f; --extra-line: #5a3b2a;
-  --chip: #24333d; --on-fill: #141f27; --primary: #ece4d8; --on-primary: #141f27;
-  --warn-ink: #f0b48f; --tabbar-bg: rgba(20, 31, 39, .94); --backdrop: rgba(0, 0, 0, .55);
-  --confetti-1: #93b489; --confetti-2: #e8956a; --confetti-3: #f0c75e; --confetti-4: #8fb8dc;
-  color-scheme: dark;
-}
+/* 어두운 화면과 다른 디자인 테마는 themes.css에 있다 */
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }

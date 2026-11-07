@@ -10,7 +10,20 @@ const MODES = {
 };
 
 const THEMES = { auto: '자동', light: '밝게', dark: '어둡게' };
-const SKINS = { classic: '통독표', founder: 'FounderOS', glass: '글래스' };
+// 디자인 테마 목록 (색·모양은 themes.css). 이름 앞머리 cute-/glass-/sharp-/sticker-가 모양을 정한다
+const SKIN_GROUPS = [
+  { name: '기본', items: { classic: '통독표', 'sharp-founder': 'FounderOS', 'glass-liquid': '리퀴드 글래스' } },
+  { name: '아기자기', items: {
+    'cute-strawberry': '딸기우유', 'cute-lemon': '레몬소다', 'cute-cloud': '구름사탕', 'cute-peach': '복숭아', 'cute-clover': '네잎클로버',
+    'cute-choco': '초코쿠키', 'cute-honey': '꿀곰', 'cute-fourcut': '네컷 구름', 'sticker-gingham': '깅엄 다이어리', 'sticker-book': '스티커북',
+  } },
+  { name: '모던', items: { 'edit-slate': '갤러리', 'edit-sand': '모래 갤러리', 'glass-dusk': '어스름', 'glass-aurora': '오로라', 'sharp-terminal': '터미널' } },
+  { name: '레트로', items: { 'retro-soap': '비누공방', 'retro-citrus': '감귤 레트로' } },
+  { name: '차분한', items: { forest: '숲속 아침', ocean: '제주 바다', sunset: '저녁 노을', lavender: '라벤더', midnight: '새벽 기도', paper: '성경책' } },
+  { name: '계절', items: { 'cute-christmas': '성탄', 'glass-sakura': '벚꽃 유리' } },
+];
+const SKINS = Object.assign({}, ...SKIN_GROUPS.map((g) => g.items));
+const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid' }; // 사본 시험판에서 쓰던 이름
 const FS = { min: 0.85, max: 1.6, step: 0.05 }; // 글자 크기 배율 범위 (85% ~ 160%, 5%씩)
 
 const UA = navigator.userAgent;
@@ -48,17 +61,27 @@ const $ = (sel) => document.querySelector(sel);
 /** 디자인·밝기·글자 크기: <html data-skin / data-theme / data-mode / style --fs> + 상태 표시줄 색 */
 function applyLook() {
   const r = document.documentElement;
-  r.dataset.skin ||= 'classic';
+  const skin = OLD_SKIN[r.dataset.skin] ?? r.dataset.skin;
+  r.dataset.skin = SKINS[skin] ? skin : 'classic';
   r.dataset.theme ||= 'auto';
   const dark = r.dataset.theme === 'dark' || (r.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   r.dataset.mode = dark ? 'dark' : 'light';
-  const bg = getComputedStyle(r).getPropertyValue('--bg').trim();
+  const css = getComputedStyle(r);
+  const bg = css.getPropertyValue('--bg').trim();
+  loadFont(css.getPropertyValue('--font-load').trim().replace(/^["']|["']$/g, ''));
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg || (dark ? '#141f27' : '#f7f0e6'));
 }
 function setLook(key, value) {
   document.documentElement.dataset[key] = value;
   try { localStorage.setItem(key, value); } catch {}
   applyLook();
+}
+/** 테마가 쓰는 구글 글꼴을 그때그때 불러온다 (안 받아져도 기본 글꼴로 보인다). 한 번 받은 건 sw가 저장 */
+function loadFont(family) {
+  if (!family || document.querySelector(`link[data-font="${family}"]`)) return;
+  const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: `https://fonts.googleapis.com/css2?family=${family}&display=swap` });
+  link.dataset.font = family;
+  document.head.append(link);
 }
 const curFs = () => parseFloat(document.documentElement.style.getPropertyValue('--fs')) || 1;
 /** 글자 크기 배율. save=false면 밀대를 끄는 동안 화면만 바꾸고 저장은 손을 뗄 때 */
@@ -272,10 +295,11 @@ function render() {
     return;
   }
   const route = location.hash.replace('#/', '') || 'home';
-  document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === route));
+  const tab = route === 'themes' ? 'settings' : route;
+  document.querySelectorAll('.tabbar a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
   // 영상이 재생 중일 때 다시 그리면 처음으로 돌아가 버린다 → 설교 화면은 한 번만 그린다
   if (route === 'sermons' && S.church?.sermons && $('#app .sermons')) return;
-  const view = { home: viewHome, plan: viewPlan, sermons: viewSermons, settings: viewSettings }[route] ?? viewHome;
+  const view = { home: viewHome, plan: viewPlan, sermons: viewSermons, settings: viewSettings, themes: viewThemes }[route] ?? viewHome;
   preservingNote(() => {
     $('#app').innerHTML = view();
     if (S.sheetDay) renderSheet();
@@ -622,7 +646,7 @@ function viewSettings() {
     <section class="card">
       <h3>화면</h3>
       <p class="seg-label">디자인</p>
-      <div class="skins" role="group" aria-label="디자인">${skinButtons()}</div>
+      ${themeNow()}
       <p class="seg-label">밝기</p>
       <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
       ${fontSizer()}
@@ -725,11 +749,40 @@ async function saveName(input) {
   return true;
 }
 
-function skinButtons() {
+/** 테마 미리보기 그림: 그 테마의 data-skin을 붙여 진짜 색으로 그린다 */
+const swatch = (v) => `<span class="sw" data-skin="${v}" data-mode="${document.documentElement.dataset.mode}" aria-hidden="true"><i class="c"></i><i class="b"></i><i class="e"></i><i class="d"></i></span>`;
+
+function themeNow() {
   const cur = document.documentElement.dataset.skin;
-  return Object.entries(SKINS)
-    .map(([v, name]) => `<button class="skin ${cur === v ? 'on' : ''}" data-act="look" data-key="skin" data-value="${v}" aria-pressed="${cur === v}"><span class="sw sw-${v}" aria-hidden="true"><i class="c"></i><i class="b"></i></span>${name}</button>`)
+  return `
+    <div class="theme-now">
+      ${swatch(cur)}
+      <div><b>${esc(SKINS[cur])}</b><small>${Object.keys(SKINS).length}가지 중에서 골라요</small></div>
+      <a class="secondary" href="#/themes">바꾸기</a>
+    </div>`;
+}
+
+function viewThemes() {
+  const cur = document.documentElement.dataset.skin;
+  const grid = (items) => Object.entries(items)
+    .map(([v, name]) => `<button class="skin ${cur === v ? 'on' : ''}" data-act="look" data-key="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${esc(name)}</button>`)
     .join('');
+  return `
+    <header class="top">
+      <a class="link back" href="#/settings">← 설정</a>
+      <p class="eyebrow">마음에 드는 옷을 골라요</p>
+      <h1>디자인</h1>
+    </header>
+    <section class="card">
+      <p class="seg-label">밝기 — 모든 디자인에 밝게·어둡게가 있어요</p>
+      <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
+      <p class="hint">누르면 바로 바뀌어요. 마음에 들 때까지 이것저것 눌러 보세요.</p>
+    </section>
+    ${SKIN_GROUPS.map((g) => `
+      <h2 class="theme-group">${g.name}<small>${Object.keys(g.items).length}</small></h2>
+      <div class="skins" role="group" aria-label="${g.name}">${grid(g.items)}</div>`).join('')}
+    <p class="foot" style="margin-top:24px">글자 크기는 설정에서 바꿀 수 있어요</p>
+  `;
 }
 
 function fontSizer() {

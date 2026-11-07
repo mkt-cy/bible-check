@@ -1,5 +1,6 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v17';
+const VERSION = 'v18';
+const FONTS = 'fonts'; // 테마 글꼴(구글) — 앱을 업데이트해도 지우지 않는다
 const SHELL = [
   './', 'index.html', 'style.css', 'themes.css', 'app.js', 'manifest.webmanifest',
   'lib/plan.js', 'lib/progress.js', 'lib/store.js',
@@ -16,7 +17,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== FONTS).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -24,6 +25,14 @@ self.addEventListener('activate', (e) => {
 // 캐시 먼저 → 없으면 네트워크 (기록은 IndexedDB에 있으므로 여기서 다루지 않는다)
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // 테마 글꼴: 한 번 받으면 저장해 두고 인터넷 없이도 쓴다
+  if (/^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(e.request.url)) {
+    e.respondWith(caches.open(FONTS).then((c) => c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+      if (res.ok || res.type === 'opaque') c.put(e.request, res.clone());
+      return res;
+    }))));
+    return;
+  }
   // 설교 목록·QT 본문은 GitHub이 자주 바꾼다 → 네트워크 먼저, 안 되면 마지막으로 받은 것
   if (/\/data\/(sermons|qt)\.json$/.test(new URL(e.request.url).pathname)) {
     // 신호가 약하면 2.5초만 기다리고 마지막으로 받은 목록을 쓴다 (받던 건 계속 받아서 다음번에 반영)
