@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dayChapters, dayLabel, locate, weeks, addDays, weekdayOf } from '../lib/plan.js';
 import { newRecord, toggleChapter, setDayDone, dayState, nextToRead, pastUnfinished, spreadPlan, stats, setNote, daysToFill } from '../lib/progress.js';
 
@@ -16,8 +16,14 @@ function readUntil(lastN, readOn = (d) => d.date) {
   return recs;
 }
 
-test('분량 표기가 원본 읽기표와 같다', () => {
-  const md = readFileSync(new URL('../../Growth_mkt-cy/01_ME/faith/reading-plan.md', import.meta.url), 'utf8');
+// 원본 통독표는 찬영 볼트에 있다. 앱 폴더 옆(옛 위치) 또는 ~/Documents/projects/ 안(11-08 이후)에서 찾고,
+// 볼트가 없는 컴퓨터에서는 이 대조만 건너뛴다 (앱은 볼트 없이 돈다)
+const PLAN_MD = ['../../Growth_mkt-cy/', '../../../Growth_mkt-cy/']
+  .map((p) => new URL(`${p}01_ME/faith/reading-plan.md`, import.meta.url))
+  .find((u) => existsSync(u));
+
+test('분량 표기가 원본 읽기표와 같다', { skip: !PLAN_MD && '볼트(원본 읽기표)가 없는 컴퓨터' }, () => {
+  const md = readFileSync(PLAN_MD, 'utf8');
   const rows = md.split('\n').filter((l, i, a) => /^\|\s*[월화수목금토일] \d+\/\d+/.test(a[i - 2] ?? ''));
   const original = rows.flatMap((l) => l.split('|').slice(1, -1).map((c) => c.trim()));
   assert.equal(original.length, 173);
