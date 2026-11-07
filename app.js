@@ -10,7 +10,8 @@ const MODES = {
 };
 
 const THEMES = { auto: '자동', light: '밝게', dark: '어둡게' };
-const SIZES = { m: '보통', l: '크게', xl: '아주 크게' };
+const SKINS = { classic: '통독표', founder: 'FounderOS', glass: '글래스' };
+const FS = { min: 0.85, max: 1.6, step: 0.05 }; // 글자 크기 배율 범위 (85% ~ 160%, 5%씩)
 
 const UA = navigator.userAgent;
 const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
@@ -44,18 +45,32 @@ const S = {
 
 const $ = (sel) => document.querySelector(sel);
 
-/** 밝기·글자 크기: <html data-theme / data-size> + 상태 표시줄 색 */
+/** 디자인·밝기·글자 크기: <html data-skin / data-theme / data-mode / style --fs> + 상태 표시줄 색 */
 function applyLook() {
   const r = document.documentElement;
+  r.dataset.skin ||= 'classic';
   r.dataset.theme ||= 'auto';
-  r.dataset.size ||= 'm';
   const dark = r.dataset.theme === 'dark' || (r.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#141f27' : '#f7f0e6');
+  r.dataset.mode = dark ? 'dark' : 'light';
+  const bg = getComputedStyle(r).getPropertyValue('--bg').trim();
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg || (dark ? '#141f27' : '#f7f0e6'));
 }
 function setLook(key, value) {
-  document.documentElement.dataset[key === 'theme' ? 'theme' : 'size'] = value;
+  document.documentElement.dataset[key] = value;
   try { localStorage.setItem(key, value); } catch {}
   applyLook();
+}
+const curFs = () => parseFloat(document.documentElement.style.getPropertyValue('--fs')) || 1;
+/** 글자 크기 배율. save=false면 밀대를 끄는 동안 화면만 바꾸고 저장은 손을 뗄 때 */
+function setFs(v, save = true) {
+  const fs = Math.round(Math.min(FS.max, Math.max(FS.min, v)) * 100) / 100;
+  document.documentElement.style.setProperty('--fs', fs);
+  const out = document.querySelector('.fs-val');
+  if (out) out.textContent = `${Math.round(fs * 100)}%`;
+  const range = document.querySelector('input[data-act="fs"]');
+  if (range && +range.value !== Math.round(fs * 100)) range.value = Math.round(fs * 100);
+  if (save) try { localStorage.setItem('fs', fs); localStorage.removeItem('size'); } catch {}
+  return fs;
 }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const day = (n) => S.plan.days[n - 1];
@@ -606,10 +621,11 @@ function viewSettings() {
 
     <section class="card">
       <h3>화면</h3>
+      <p class="seg-label">디자인</p>
+      <div class="skins" role="group" aria-label="디자인">${skinButtons()}</div>
       <p class="seg-label">밝기</p>
       <div class="seg" role="group" aria-label="밝기">${segButtons('theme', THEMES)}</div>
-      <p class="seg-label">글자 크기</p>
-      <div class="seg" role="group" aria-label="글자 크기">${segButtons('size', SIZES)}</div>
+      ${fontSizer()}
     </section>
 
     <section class="card">
@@ -707,6 +723,26 @@ async function saveName(input) {
   await store.setSetting('userName', value);
   S.name = value;
   return true;
+}
+
+function skinButtons() {
+  const cur = document.documentElement.dataset.skin;
+  return Object.entries(SKINS)
+    .map(([v, name]) => `<button class="skin ${cur === v ? 'on' : ''}" data-act="look" data-key="skin" data-value="${v}" aria-pressed="${cur === v}"><span class="sw sw-${v}" aria-hidden="true"><i class="c"></i><i class="b"></i></span>${name}</button>`)
+    .join('');
+}
+
+function fontSizer() {
+  const pct = Math.round(curFs() * 100);
+  return `
+    <div class="fs-head"><p class="seg-label">글자 크기</p><span class="fs-val">${pct}%</span></div>
+    <div class="fs-row">
+      <button data-act="fsStep" data-d="-1" aria-label="글자 작게">가</button>
+      <input type="range" min="${FS.min * 100}" max="${FS.max * 100}" step="${FS.step * 100}" value="${pct}" data-act="fs" aria-label="글자 크기" />
+      <button data-act="fsStep" data-d="1" aria-label="글자 크게">가</button>
+    </div>
+    <p class="fs-sample">태초에 하나님이 천지를 창조하시니라<small>창세기 1장 1절 · 이 글씨가 편한 크기로 맞춰 보세요</small></p>
+    ${pct !== 100 ? '<button class="link fs-reset" data-act="fsReset">기본 크기(100%)로</button>' : ''}`;
 }
 
 function segButtons(key, options) {
@@ -867,6 +903,14 @@ const actions = {
     setLook(el.dataset.key, el.dataset.value);
     render();
   },
+  fsStep(el) {
+    setFs(curFs() + FS.step * +el.dataset.d);
+    render();
+  },
+  fsReset() {
+    setFs(1);
+    render();
+  },
   async fill(el) {
     const d = day(+el.dataset.n);
     if (!confirm(`${shortDate(S.plan.start)}부터 ${shortDate(d.date)}까지 체크 안 된 날을 모두 읽음으로 표시할까요?`)) return;
@@ -937,8 +981,14 @@ document.addEventListener('click', async (e) => {
   }
 });
 
+// 글자 크기 밀대: 끄는 동안 바로 보이고, 손을 떼면(change) 저장
+document.addEventListener('input', (e) => {
+  if (e.target.dataset.act === 'fs') setFs(+e.target.value / 100, false);
+});
+
 document.addEventListener('change', async (e) => {
   const el = e.target;
+  if (el.dataset.act === 'fs') { setFs(+el.value / 100); render(); return; }
   if (el.dataset.act === 'note') {
     if (await saveNote(el)) toast('남겼어요');
   }

@@ -1,0 +1,201 @@
+/* 디자인 테마 (스킨) — style.css 위에 덧입힌다
+   <html data-skin="classic|founder|glass">  · 밝기는 data-mode="light|dark" (app이 '자동'을 폰 설정으로 풀어서 넣는다)
+   classic(통독표)은 style.css의 기본 토큰을 그대로 쓴다 → 여기엔 founder · glass만 있다
+   새 테마를 만들 땐: 아래 블록 하나를 복사해 이름만 바꾸고 토큰 값을 고친다 (밝게 1블록 + 어둡게 1블록) */
+
+/* ───────────── FounderOS (KS 모드 · Monolith) ─────────────
+   흑백 + 상태색만 · 그림자 없는 얇은 선 카드 · 머리글 // 표식 · 숫자는 고정폭 */
+:root[data-skin="founder"] {
+  --bg: #f2f2f4; --card: #ffffff; --field: #ffffff;
+  --ink: #0b0b0d; --muted: #5d5d66; --line: #e4e4e8;
+  --green: #0e7a55; --green-ink: #0b6b4a; --green-soft: #e3f3ec; --done-line: #b9dfcd;
+  --accent: #0b0b0d; --accent-ink: #3f3f46; --accent-soft: #e9e9ec; --extra-line: #d6d6da;
+  --chip: #f0f0f3; --on-fill: #ffffff; --primary: #0b0b0d; --on-primary: #ffffff;
+  --warn-ink: #8c600f; --tabbar-bg: rgba(242, 242, 244, .92); --backdrop: rgba(11, 11, 13, .35);
+  --radius: 12px;
+  --confetti-1: #0b0b0d; --confetti-2: #1d4ed8; --confetti-3: #d55181; --confetti-4: #ffb000;
+  --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --num: ui-monospace, "SF Mono", Menlo, "Roboto Mono", monospace;
+  color-scheme: light;
+}
+:root[data-skin="founder"][data-mode="dark"] {
+  --bg: #0a0a0a; --card: #0f0f0f; --field: #131313;
+  --ink: #f2f2f2; --muted: #a1a1a6; --line: #232326;
+  --green: #2fd36f; --green-ink: #2fd36f; --green-soft: #10241a; --done-line: #1d4a2f;
+  --accent: #ffffff; --accent-ink: #d4d4d4; --accent-soft: #1a1a1a; --extra-line: #2c2c2e;
+  --chip: #181818; --on-fill: #0a0a0a; --primary: #f2f2f2; --on-primary: #0a0a0a;
+  --warn-ink: #ffb000; --tabbar-bg: rgba(10, 10, 10, .92); --backdrop: rgba(0, 0, 0, .6);
+  --confetti-1: #ffffff; --confetti-2: #4aa8ff; --confetti-3: #ff6fa3; --confetti-4: #ffb000;
+  color-scheme: dark;
+}
+:root[data-skin="founder"] body { letter-spacing: -0.01em; }
+[data-skin="founder"] .eyebrow { color: var(--muted); font-size: calc(13px * var(--fs)); letter-spacing: .02em; }
+[data-skin="founder"] .eyebrow::before,
+[data-skin="founder"] .card h3::before,
+[data-skin="founder"] .list-head::before {
+  content: "//"; margin-right: 6px;
+  font-family: var(--num); font-size: .78em; font-weight: 700; letter-spacing: .1em; color: var(--muted);
+}
+[data-skin="founder"] .top h1, [data-skin="founder"] .card h2 { letter-spacing: -0.02em; font-weight: 800; }
+[data-skin="founder"] .card { animation: rise .42s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+[data-skin="founder"] .stats b, [data-skin="founder"] .cell .dt, [data-skin="founder"] .week .count,
+[data-skin="founder"] .sermon-row .d, [data-skin="founder"] .plan-row .wd small, [data-skin="founder"] .fs-val {
+  font-family: var(--num); letter-spacing: -0.02em;
+}
+[data-skin="founder"] .week .wk { border-radius: 3px; font-family: var(--num); }
+[data-skin="founder"] .primary, [data-skin="founder"] .secondary { border-radius: 10px; }
+[data-skin="founder"] .chip, [data-skin="founder"] .cell, [data-skin="founder"] .seg button { border-radius: 8px; }
+[data-skin="founder"] .bar { height: 4px; border-radius: 0; }
+[data-skin="founder"] .ob-dots span, [data-skin="founder"] .ob-dots span.on { border-radius: 0; } /* 네모 LED */
+[data-skin="founder"] .tabbar a.on { box-shadow: inset 0 2px 0 var(--ink); }
+[data-skin="founder"] .cell.today { border-color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { [data-skin="founder"] .card { animation: none; } }
+
+/* ───────────── 리퀴드 글래스 (맥·아이폰 느낌) ─────────────
+   색 번진 바탕 위에 반투명 유리 카드 · 둥근 모서리 · 떠 있는 탭바 */
+:root[data-skin="glass"] {
+  --bg: #eef1f8; --card: rgba(255, 255, 255, .58); --field: rgba(255, 255, 255, .72);
+  --ink: #1c1c1e; --muted: #4a5160; --line: rgba(60, 60, 67, .14);
+  --green: #248a3d; --green-ink: #1e7a35; --green-soft: rgba(52, 199, 89, .18); --done-line: rgba(36, 138, 61, .38);
+  --accent: #007aff; --accent-ink: #0060c9; --accent-soft: rgba(0, 122, 255, .13); --extra-line: rgba(0, 122, 255, .3);
+  --chip: rgba(118, 118, 128, .13); --on-fill: #ffffff; --primary: #007aff; --on-primary: #ffffff;
+  --warn-ink: #a84a00; --tabbar-bg: rgba(255, 255, 255, .55); --backdrop: rgba(0, 0, 0, .22);
+  --radius: 22px; --tabbar: 76px;
+  --glass-edge: rgba(255, 255, 255, .75);
+  --glass-shadow: 0 8px 30px rgba(31, 45, 100, .10), inset 0 1px 0 rgba(255, 255, 255, .7);
+  --sheet-bg: rgba(250, 251, 255, .80);
+  --art: radial-gradient(60% 45% at 12% 8%, #bcd5ff 0%, transparent 70%),
+         radial-gradient(55% 40% at 92% 22%, #ffd3ea 0%, transparent 70%),
+         radial-gradient(60% 45% at 30% 78%, #c9f2e0 0%, transparent 70%),
+         radial-gradient(50% 40% at 88% 92%, #e3d6ff 0%, transparent 70%), #eef1f8;
+  --confetti-1: #007aff; --confetti-2: #ff2d55; --confetti-3: #ffcc00; --confetti-4: #34c759;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  color-scheme: light;
+}
+:root[data-skin="glass"][data-mode="dark"] {
+  --bg: #0b0d1a; --card: rgba(255, 255, 255, .08); --field: rgba(255, 255, 255, .10);
+  --ink: #f5f5f7; --muted: #b0b6c4; --line: rgba(255, 255, 255, .13);
+  --green: #30d158; --green-ink: #4ade80; --green-soft: rgba(48, 209, 88, .18); --done-line: rgba(48, 209, 88, .42);
+  --accent: #0a84ff; --accent-ink: #6cb2ff; --accent-soft: rgba(10, 132, 255, .22); --extra-line: rgba(10, 132, 255, .42);
+  --chip: rgba(255, 255, 255, .10); --on-fill: #00110a; --primary: #0a84ff; --on-primary: #ffffff;
+  --warn-ink: #ffb36b; --tabbar-bg: rgba(28, 30, 44, .55); --backdrop: rgba(0, 0, 0, .5);
+  --glass-edge: rgba(255, 255, 255, .16);
+  --glass-shadow: 0 8px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .10);
+  --sheet-bg: rgba(26, 28, 42, .82);
+  --art: radial-gradient(60% 45% at 12% 8%, #1f3b8f 0%, transparent 70%),
+         radial-gradient(55% 40% at 92% 22%, #5a2a86 0%, transparent 70%),
+         radial-gradient(60% 45% at 30% 80%, #0e5a5c 0%, transparent 70%),
+         radial-gradient(50% 40% at 88% 92%, #2b2f8a 0%, transparent 70%), #0b0d1a;
+  --confetti-1: #0a84ff; --confetti-2: #ff375f; --confetti-3: #ffd60a; --confetti-4: #30d158;
+  color-scheme: dark;
+}
+/* 색 번진 바탕: 화면에 고정된 그림 한 장 (iOS는 background-attachment: fixed가 안 먹어서 가상 요소로) */
+:root[data-skin="glass"] body::before {
+  content: ""; position: fixed; inset: -10vh 0; z-index: -1;
+  background: var(--art);
+}
+[data-skin="glass"] .card,
+[data-skin="glass"] .ob-points li {
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+}
+[data-skin="glass"] .option, [data-skin="glass"] .seg button, [data-skin="glass"] .secondary,
+[data-skin="glass"] .note, [data-skin="glass"] .cell { border-color: var(--glass-edge); }
+[data-skin="glass"] .secondary { border-color: var(--line); }
+[data-skin="glass"] .primary { border-radius: 16px; box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 32%, transparent); }
+[data-skin="glass"] .primary.is-done { box-shadow: none; }
+[data-skin="glass"] .chip { border-radius: 14px; }
+[data-skin="glass"] .cell, [data-skin="glass"] .option, [data-skin="glass"] .note, [data-skin="glass"] .secondary { border-radius: 16px; }
+[data-skin="glass"] .seg button { border-radius: 14px; }
+[data-skin="glass"] .bar { height: 8px; border-radius: 4px; }
+[data-skin="glass"] .bar span { border-radius: 4px; }
+[data-skin="glass"] .week .wk { border-radius: 999px; padding: 1px 10px; }
+/* 떠 있는 알약 탭바 */
+[data-skin="glass"] .tabbar {
+  left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 10px);
+  max-width: 496px; margin: 0 auto; padding: 6px;
+  border: 1px solid var(--glass-edge); border-radius: 30px;
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+[data-skin="glass"] .tabbar a { height: 52px; border-radius: 24px; }
+[data-skin="glass"] .tabbar a.on { box-shadow: none; background: var(--accent-soft); color: var(--accent-ink); }
+[data-skin="glass"] .sheet-panel {
+  background: var(--sheet-bg);
+  border-radius: 28px 28px 0 0;
+  border-top: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+}
+[data-skin="glass"] .toast, [data-skin="glass"] .confetti .party { box-shadow: var(--glass-shadow); }
+/* 흐림(블러)을 못 쓰는 폰: 카드를 덜 투명하게 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-skin="glass"] { --card: rgba(255, 255, 255, .86); --tabbar-bg: rgba(255, 255, 255, .92); --sheet-bg: #fafbff; }
+  :root[data-skin="glass"][data-mode="dark"] { --card: rgba(30, 32, 46, .9); --tabbar-bg: rgba(28, 30, 44, .94); --sheet-bg: #1a1c2a; }
+}
+
+/* ───────────── 설정: 디자인 고르기 · 글자 크기 ───────────── */
+.skins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.skin {
+  display: flex; flex-direction: column; gap: 6px; align-items: stretch;
+  padding: 8px 8px 10px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--field);
+  text-align: center; font-weight: 600; font-size: calc(14px * var(--fs));
+}
+.skin.on { border-color: var(--green); background: var(--green-soft); color: var(--green-ink); box-shadow: 0 0 0 1px var(--green); }
+/* 미리보기 그림: 테마 색을 직접 박아 둔다 (지금 고른 테마와 상관없이 그 테마의 모습) */
+.sw { position: relative; height: 54px; border-radius: 8px; overflow: hidden; }
+.sw i { position: absolute; left: 8px; right: 8px; display: block; }
+.sw .c { top: 8px; height: 22px; border-radius: 6px; }
+.sw .b { bottom: 8px; height: 10px; width: 46%; border-radius: 4px; }
+.sw-classic { background: #f7f0e6; }
+.sw-classic .c { background: #fffdf8; border: 1px solid #e6dccd; }
+.sw-classic .b { background: #5f7f57; }
+.sw-classic::after { content: ""; position: absolute; right: 8px; bottom: 8px; width: 30%; height: 10px; border-radius: 4px; background: #c4622d; }
+.sw-founder { background: #f2f2f4; }
+.sw-founder .c { background: #fff; border: 1px solid #e4e4e8; border-radius: 4px; }
+.sw-founder .b { background: #0b0b0d; border-radius: 2px; }
+.sw-founder::after { content: "//"; position: absolute; left: 12px; top: 10px; font: 700 10px ui-monospace, monospace; color: #8a8a92; }
+.sw-glass { background: radial-gradient(70% 60% at 15% 15%, #bcd5ff, transparent 70%), radial-gradient(70% 60% at 90% 30%, #ffd3ea, transparent 70%), radial-gradient(70% 60% at 40% 100%, #c9f2e0, transparent 70%), #eef1f8; }
+.sw-glass .c { background: rgba(255, 255, 255, .55); border: 1px solid rgba(255, 255, 255, .85); border-radius: 10px; }
+.sw-glass .b { background: #007aff; border-radius: 999px; }
+:root[data-mode="dark"] .sw-classic { background: #141f27; }
+:root[data-mode="dark"] .sw-classic .c { background: #1c2a34; border-color: #2e3e49; }
+:root[data-mode="dark"] .sw-founder { background: #0a0a0a; }
+:root[data-mode="dark"] .sw-founder .c { background: #0f0f0f; border-color: #232326; }
+:root[data-mode="dark"] .sw-founder .b { background: #f2f2f2; }
+:root[data-mode="dark"] .sw-glass { background: radial-gradient(70% 60% at 15% 15%, #1f3b8f, transparent 70%), radial-gradient(70% 60% at 90% 30%, #5a2a86, transparent 70%), radial-gradient(70% 60% at 40% 100%, #0e5a5c, transparent 70%), #0b0d1a; }
+:root[data-mode="dark"] .sw-glass .c { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .2); }
+
+.fs-head { display: flex; align-items: baseline; justify-content: space-between; }
+.fs-val { font-weight: 700; color: var(--ink); font-size: calc(14px * var(--fs)); font-variant-numeric: tabular-nums; }
+.fs-row { display: flex; align-items: center; gap: 10px; }
+.fs-row button {
+  flex: none; min-width: 48px; min-height: 48px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-weight: 700;
+}
+.fs-row button:first-child { font-size: 14px; }
+.fs-row button:last-child { font-size: 22px; }
+.fs-row input[type="range"] { flex: 1; min-width: 0; height: 44px; accent-color: var(--green); }
+.fs-ticks { display: flex; justify-content: space-between; margin: -6px 58px 0; font-size: 12px; color: var(--muted); }
+.fs-sample {
+  margin: 12px 0 0; padding: 12px 14px;
+  border: 1px dashed var(--line); border-radius: 10px;
+  font-size: calc(17px * var(--fs)); line-height: 1.6;
+}
+.fs-sample small { display: block; color: var(--muted); font-size: calc(13px * var(--fs)); }
+.fs-reset { margin-top: 4px; }
+
+/* 고른 것 표시: 통독표=초록 · FounderOS=먹색(색은 상태에만) · 글래스=파랑 */
+[data-skin="founder"] .seg button.on, [data-skin="founder"] .skin.on, [data-skin="founder"] .option.on {
+  border-color: var(--ink); background: var(--accent-soft); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink);
+}
+[data-skin="glass"] .seg button.on, [data-skin="glass"] .skin.on, [data-skin="glass"] .option.on {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); box-shadow: 0 0 0 1px var(--accent);
+}
+[data-skin="founder"] .fs-row input[type="range"] { accent-color: var(--ink); }
+[data-skin="glass"] .fs-row input[type="range"] { accent-color: var(--accent); }

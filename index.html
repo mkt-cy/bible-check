@@ -12,9 +12,17 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="themes.css" />
   <script>
-    // 밝기·글자 크기는 화면을 그리기 전에 적용 (깜빡임 방지). 이 폰의 사정이라 백업에 넣지 않는다
-    try { const r = document.documentElement; r.dataset.theme = localStorage.getItem('theme') || 'auto'; r.dataset.size = localStorage.getItem('size') || 'm'; } catch {}
+    // 디자인·밝기·글자 크기는 화면을 그리기 전에 적용 (깜빡임 방지). 이 폰의 사정이라 백업에 넣지 않는다
+    try {
+      const r = document.documentElement, ls = localStorage;
+      r.dataset.skin = ls.getItem('skin') || 'classic';
+      r.dataset.theme = ls.getItem('theme') || 'auto';
+      r.dataset.mode = r.dataset.theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : r.dataset.theme;
+      const fs = parseFloat(ls.getItem('fs')) || { l: 1.15, xl: 1.3 }[ls.getItem('size')] || 1; // 'size'는 예전 3단계 설정
+      r.style.setProperty('--fs', fs);
+    } catch {}
   </script>
 </head>
 <body>
