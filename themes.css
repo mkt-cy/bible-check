@@ -317,24 +317,6 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: dark;
 }
 
-/* 아기자기 · 성탄 (눈 내리는 바탕) */
-[data-skin="cute-christmas"] {
-  --bg: #fbf5ef; --card: #ffffff; --ink: #2a2a2a; --muted: #645c5a;
-  --green: #1f7a4a; --green-ink: #1a6a40; --accent: #d0343a; --accent-ink: #ad252b;
-  --on-fill: #ffffff; --primary: #ad252b; --on-primary: #ffffff;
-  --deco: "🎄"; --display: "Jua", var(--font); --font-load: "Jua";
-  --art: radial-gradient(rgba(208, 52, 58, .16) 2px, transparent 2.4px) 0 0 / 26px 26px,
-         radial-gradient(rgba(31, 122, 74, .14) 1.6px, transparent 2px) 13px 13px / 26px 26px, var(--bg);
-  color-scheme: light;
-}
-[data-skin="cute-christmas"][data-mode="dark"] {
-  --bg: #0f1d17; --card: #182a21; --ink: #f5efe6; --muted: #b5c2b9;
-  --green: #4fbf7f; --green-ink: #6fd39a; --accent: #ff6b6b; --accent-ink: #ff8a8a;
-  --on-fill: #0f1d17; --primary: #ff6b6b; --on-primary: #1a0a0a;
-  --art: radial-gradient(rgba(255, 255, 255, .5) 1.4px, transparent 1.8px) 0 0 / 34px 34px,
-         radial-gradient(rgba(255, 255, 255, .28) 1.1px, transparent 1.5px) 17px 11px / 34px 34px, var(--bg);
-  color-scheme: dark;
-}
 
 /* 차분한 · 숲속 아침 */
 [data-skin="forest"] {
@@ -724,22 +706,22 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
          linear-gradient(170deg, #4a1f35 0%, #3a2030 50%, #2e2433 100%);
   color-scheme: dark;
 }
-[data-skin="cute-fourcut"] :is(.card, .ob-points li) {
+[data-skin^="cute-fourcut"] :is(.card, .ob-points li) {
   border: 0; border-radius: 34px;
   box-shadow: 0 0 0 7px color-mix(in srgb, var(--card) 45%, transparent), 0 8px 0 7px color-mix(in srgb, var(--card) 25%, transparent);
   margin-bottom: 22px;
 }
-[data-skin="cute-fourcut"] .top .eyebrow {
+[data-skin^="cute-fourcut"] .top .eyebrow {
   position: relative; display: inline-block; padding: 3px 14px; margin-bottom: 8px;
   background: var(--card); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 999px;
 }
-[data-skin="cute-fourcut"] .top .eyebrow::after {
+[data-skin^="cute-fourcut"] .top .eyebrow::after {
   content: ""; position: absolute; left: 18px; bottom: -6px; width: 9px; height: 9px;
   background: var(--card); border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); transform: rotate(45deg);
 }
-[data-skin="cute-fourcut"] .top h1::after { content: "✦ 💗"; color: #f2c200; }
-[data-skin="cute-fourcut"] :is(.top h1, .card h2, .card h3, .primary, .tabbar a) { font-weight: 700; }
-[data-skin="cute-fourcut"] .tabbar { border-top: 0; }
+[data-skin^="cute-fourcut"] .top h1::after { content: "✦ " var(--deco); color: #f2c200; }
+[data-skin^="cute-fourcut"] :is(.top h1, .card h2, .card h3, .primary, .tabbar a) { font-weight: 700; }
+[data-skin^="cute-fourcut"] .tabbar { border-top: 0; }
 
 /* 아기자기 · 깅엄 다이어리 (깅엄 체크 + 손그림 카메라 스티커에서) */
 [data-skin="sticker-gingham"] {
@@ -771,24 +753,6 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 [data-skin="sticker-gingham"] .top h1 { font-size: calc(36px * var(--fs)); }
 [data-skin="sticker-gingham"] .card { border-radius: 16px; }
 
-/* 행사 · 추수감사 (11월) — 호박·들판 색, 떨어지는 잎 무늬 */
-[data-skin="cute-thanks"] {
-  --bg: #fbf0e0; --card: #fffaf2; --ink: #3b2a1a; --muted: #6a5640;
-  --green: #a45a17; --green-ink: #8a4a10; --accent: #6b7d2a; --accent-ink: #55641f;
-  --on-fill: #ffffff; --primary: #8a4a10; --on-primary: #fff6e8;
-  --deco: "🌾"; --display: "Jua", var(--font); --font-load: "Jua";
-  --art: radial-gradient(rgba(214, 120, 40, .22) 2px, transparent 2.6px) 0 0 / 30px 30px,
-         radial-gradient(rgba(107, 125, 42, .18) 1.6px, transparent 2.2px) 15px 11px / 30px 30px, var(--bg);
-  color-scheme: light;
-}
-[data-skin="cute-thanks"][data-mode="dark"] {
-  --bg: #221a12; --card: #30251a; --ink: #fbeedd; --muted: #d0b99c;
-  --green: #f0a35a; --green-ink: #f5b77a; --accent: #b8c95f; --accent-ink: #c8d67e;
-  --on-fill: #221a12; --primary: #f0a35a; --on-primary: #221a12;
-  --art: radial-gradient(rgba(240, 163, 90, .22) 2px, transparent 2.6px) 0 0 / 30px 30px,
-         radial-gradient(rgba(184, 201, 95, .16) 1.6px, transparent 2.2px) 15px 11px / 30px 30px, var(--bg);
-  color-scheme: dark;
-}
 
 /* 리퀴드 글래스 · 살구 */
 [data-skin="glass-peach"] {
@@ -812,6 +776,43 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: dark;
 }
 
+/* 네컷 구름 · 하늘 */
+[data-skin="cute-fourcut-sky"] {
+  --bg: #cfdcf7; --card: #ffffff; --ink: #26304a; --muted: #39445f;
+  --green: #3d63c9; --green-ink: #3456b0; --accent: #f2a900; --accent-ink: #8a5a00;
+  --on-fill: #ffffff; --primary: #3d63c9; --on-primary: #ffffff;
+  --deco: "💙"; --display: "Gaegu", var(--font); --font-load: "Gaegu:wght@700";
+  --art: radial-gradient(rgba(255, 255, 255, .9) 1.6px, transparent 2px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .9) 2px, transparent 2.6px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #a9c8f5 0%, #cdbff2 50%, #fbe3f0 100%);
+  color-scheme: light;
+}
+[data-skin="cute-fourcut-sky"][data-mode="dark"] {
+  --bg: #182033; --card: #232d45; --ink: #eaf0ff; --muted: #b5c0dd;
+  --green: #8fb0ff; --green-ink: #a9c2ff; --accent: #ffd35a; --accent-ink: #ffdd80;
+  --on-fill: #0f1830; --primary: #8fb0ff; --on-primary: #0f1830;
+  --art: radial-gradient(rgba(255, 255, 255, .5) 1.4px, transparent 1.8px) 0 0 / 46px 46px,
+         radial-gradient(rgba(255, 214, 90, .6) 1.8px, transparent 2.4px) 23px 17px / 46px 46px,
+         linear-gradient(170deg, #1f2f55 0%, #2a2650 50%, #2e2433 100%);
+  color-scheme: dark;
+}
+
+/* 차분한 · 새벽 · 별빛 */
+[data-skin="starlight"] {
+  --bg: #eef1f5; --card: #ffffff; --ink: #1d2733; --muted: #586474;
+  --green: #3b6e8f; --green-ink: #2f5b77; --accent: #8a7bd1; --accent-ink: #5f50a8;
+  --on-fill: #ffffff; --primary: #1d2733; --on-primary: #ffffff;
+  color-scheme: light;
+}
+[data-skin="starlight"][data-mode="dark"] {
+  --bg: #0c1219; --card: #151d27; --ink: #e6edf5; --muted: #a2b0c0;
+  --green: #8cc4e6; --green-ink: #a5d2ee; --accent: #c2b6ff; --accent-ink: #cfc6ff;
+  --on-fill: #0c1219; --primary: #e6edf5; --on-primary: #0c1219;
+  --art: radial-gradient(rgba(255, 255, 255, .35) 1px, transparent 1.4px) 0 0 / 40px 40px,
+         radial-gradient(rgba(194, 182, 255, .3) 1.2px, transparent 1.6px) 20px 13px / 40px 40px, var(--bg);
+  color-scheme: dark;
+}
+
 /* ───────── 설정 · 디자인 고르기 화면 ───────── */
 .theme-cur { font-weight: 700; font-size: calc(14px * var(--fs)); color: var(--ink); }
 /* 디자인 묶음 탭 (좁으면 옆으로 밀어서) */
@@ -825,14 +826,20 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
 .skins + .hint { margin-top: 10px; }
 .skin small { display: block; font-weight: 400; font-size: calc(11px * var(--fs)); color: var(--muted); }
 /* 유리 색 */
-.glass-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0 0 4px; }
-.glass-colors button {
+.colors { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 6px; margin: 0 0 4px; }
+.colors button {
   display: flex; flex-direction: column; gap: 4px; align-items: stretch; min-width: 0; padding: 5px 5px 7px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-size: calc(12px * var(--fs)); font-weight: 600;
 }
-.glass-colors .sw { height: 34px; border-radius: 8px; }
-.glass-colors .sw i { display: none; }
-.glass-colors button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); color: var(--accent-ink); }
+.colors .sw { height: 46px; border-radius: 8px; }
+.colors .sw .c { top: 6px; height: 18px; left: 6px; right: 6px; }
+.colors .sw .c::after { top: 5px; height: 5px; }
+.colors .sw :is(.b, .d, .e) { bottom: 6px; height: 9px; }
+.colors .sw .b { left: 6px; }
+.colors .sw .d { right: 6px; width: 9px; }
+.colors .sw .e { right: 18px; width: 9px; }
+.colors .sw::after { display: none; }
+.colors button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); color: var(--accent-ink); }
 .skins { margin-bottom: 4px; }
 .theme-now { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .theme-now .sw { flex: none; width: 92px; }

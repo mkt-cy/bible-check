@@ -3,7 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
-const APP_VERSION = 'v20'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
+const APP_VERSION = 'v21'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -11,27 +11,40 @@ const MODES = {
 };
 
 const THEMES = { auto: '자동', light: '밝게', dark: '어둡게' };
-// 디자인 테마 목록 (색·모양은 themes.css). 이름 앞머리 cute-/glass-/sharp-/sticker-/edit-/retro-가 모양을 정한다
-const SKIN_GROUPS = [
-  { name: '기본', items: { classic: '통독표', 'sharp-founder': '무채색', 'glass-liquid': '리퀴드 글래스' } },
-  { name: '아기자기', items: {
-    'cute-strawberry': '딸기우유', 'cute-lemon': '레몬소다', 'cute-cloud': '구름사탕', 'cute-peach': '복숭아', 'cute-clover': '네잎클로버',
-    'cute-honey': '꿀곰', 'cute-fourcut': '네컷 구름', 'sticker-gingham': '깅엄 다이어리', 'sticker-book': '스티커북',
-  } },
-  { name: '모던', items: { 'edit-slate': '갤러리', 'edit-sand': '모래 갤러리', 'retro-soap': '비누공방', 'retro-citrus': '감귤 레트로', 'sharp-terminal': '터미널' } },
-  { name: '차분한', items: { forest: '숲속 아침', ocean: '제주 바다', sunset: '저녁 노을', lavender: '라벤더', midnight: '새벽 기도', paper: '성경책' } },
-  { name: '행사', items: { 'cute-thanks': '추수감사', 'cute-christmas': '성탄' } },
+// 디자인 목록 (색·모양은 themes.css). 탭마다 디자인 3개, 디자인마다 색 여러 개(첫 번째가 기본)
+// 테마 이름 앞머리 cute-/glass-/sharp-/sticker-/edit-/retro-가 모양을 정하므로, 같은 디자인의 색은 같은 앞머리를 쓴다
+const DESIGN_TABS = [
+  { name: '기본', designs: [
+    { name: '통독표', colors: { classic: '통독표' } },
+    { name: '성경책', colors: { paper: '종이' } },
+    { name: '리퀴드 글래스', colors: { 'glass-liquid': '블루', 'glass-sakura': '벚꽃', 'glass-aurora': '오로라', 'glass-dusk': '어스름', 'glass-peach': '살구' } },
+  ] },
+  { name: '아기자기', designs: [
+    { name: '말랑', colors: { 'cute-strawberry': '딸기', 'cute-lemon': '레몬', 'cute-cloud': '구름', 'cute-peach': '복숭아', 'cute-clover': '클로버', 'cute-honey': '꿀곰' } },
+    { name: '스티커북', colors: { 'sticker-book': '하늘', 'sticker-gingham': '깅엄' } },
+    { name: '네컷 구름', colors: { 'cute-fourcut': '분홍', 'cute-fourcut-sky': '하늘' } },
+  ] },
+  { name: '모던', designs: [
+    { name: '무채색', colors: { 'sharp-founder': '흑백', 'sharp-terminal': '터미널' } },
+    { name: '갤러리', colors: { 'edit-slate': '슬레이트', 'edit-sand': '모래' } },
+    { name: '레트로', colors: { 'retro-soap': '비누공방', 'retro-citrus': '감귤' } },
+  ] },
+  { name: '차분한', designs: [
+    { name: '아침', colors: { forest: '숲속', ocean: '제주 바다' } },
+    { name: '저녁', colors: { sunset: '노을', lavender: '라벤더' } },
+    { name: '새벽', colors: { midnight: '새벽 기도', starlight: '별빛' } },
+  ] },
 ];
-// 리퀴드 글래스는 한 칸이고, 고르면 아래에 유리 색이 나온다 (첫 번째가 기본)
-const GLASS_COLORS = { 'glass-liquid': '블루', 'glass-sakura': '벚꽃', 'glass-aurora': '오로라', 'glass-dusk': '어스름', 'glass-peach': '살구' };
-// 행사 디자인: 교회 행사 때마다 새로 넣는다. until이 지나면 고르는 목록에서 빠진다 (이미 고른 사람은 그대로 쓴다)
-const EVENTS = {
-  'cute-thanks': { until: '2026-11-30', note: '11월 추수감사절' },
-  'cute-christmas': { until: '2026-12-31', note: '12월 성탄절' },
-};
-const SKINS = Object.assign({}, ...SKIN_GROUPS.map((g) => g.items), Object.fromEntries(Object.entries(GLASS_COLORS).map(([k, v]) => [k, `리퀴드 글래스 · ${v}`])));
-const groupOf = (skin) => skin.startsWith('glass-') ? '기본' : SKIN_GROUPS.find((g) => g.items[skin])?.name ?? '기본';
-const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid' }; // 사본 시험판에서 쓰던 이름
+const DESIGNS = DESIGN_TABS.flatMap((t) => t.designs.map((d) => ({ ...d, tab: t.name })));
+const designOf = (skin) => DESIGNS.find((d) => d.colors[skin]) ?? DESIGNS[0];
+const SKINS = Object.fromEntries(DESIGNS.flatMap((d) => Object.entries(d.colors).map(([id, c]) => [id, Object.keys(d.colors).length > 1 ? `${d.name} · ${c}` : d.name])));
+/** 디자인을 누르면: 그 디자인에서 마지막으로 고른 색, 없으면 첫 색 */
+function designPick(d) {
+  let id = null;
+  try { id = localStorage.getItem(`color:${d.name}`); } catch {}
+  return d.colors[id] ? id : Object.keys(d.colors)[0];
+}
+const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid', 'cute-choco': 'cute-honey', 'cute-christmas': 'classic', 'cute-thanks': 'classic' }; // 사본 시험판에서 쓰던 이름
 const FS = { min: 0.85, max: 1.6, step: 0.05 }; // 글자 크기 배율 범위 (85% ~ 160%, 5%씩)
 
 const UA = navigator.userAgent;
@@ -58,9 +71,7 @@ const S = {
   qt: [], // data/qt.json — 매일성경 날짜별 QT 제목·본문 (매일 GitHub이 받아 온다)
   qtRecs: new Map(), // 'YYYY-MM-DD' → QT 체크 기록 (통독 기록과 따로, planId 'qt')
   updates: [], // data/updates.json — 최근 바뀐 것 (의견으로 바뀐 건 fromFeedback)
-  fbKind: '불편해요', // 의견 보내기: 고른 종류
   fbText: '', // 쓰던 의견 (다시 그려도 남게)
-  fbInfo: true, // 폰 정보 같이 보내기
   sermonsTried: false, // 설교 목록 첫 받기를 마쳤는지 (못 받았으면 '불러오는 중' 대신 안내)
   storage: { ok: true },
   lastExport: null,
@@ -389,6 +400,7 @@ function viewHome() {
     </section>
     ${statsLine(st)}
     <div class="bar" role="img" aria-label="성경 전체 ${st.chapters}장 읽음"><span style="width:${(st.chapters / 1189) * 100}%"></span></div>
+    ${feedbackLink()}
   `;
 }
 
@@ -575,10 +587,12 @@ function viewPlan() {
 }
 
 // ── 의견 보내기 · 최근 바뀐 것 ──
-// 의견은 교회 담당자의 구글 설문지로 바로 간다 (data/church.json의 feedback). 설정이 없으면 카드를 숨긴다.
-// 보내는 것 = 고른 종류 + 쓴 글 + (원하면) 폰 종류·디자인·글자 크기·앱 판. 이름·읽은 기록은 보내지 않는다.
-const FB_KINDS = ['불편해요', '이런 게 있으면 좋겠어요', '좋았어요', '기타'];
-const fbReady = () => { const f = S.church?.feedback; return !!(f?.form && f.kind && f.text); };
+// 의견은 담당자의 구글 시트로 바로 간다 (data/church.json의 feedback.url = 시트에 붙인 앱스 스크립트 주소, scripts/feedback-sheet.gs).
+// 보내는 것 = 쓴 글 + 폰 종류·디자인·글자 크기·앱 판 한 줄. 이름·읽은 기록은 보내지 않는다.
+// 주소가 없으면 숨긴다. 단 이 맥·같은 와이파이에서 시험할 때는 보이게 (보내기만 막는다)
+const LOCAL = /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+const fbUrl = () => S.church?.feedback?.url || '';
+const fbShown = () => !!fbUrl() || LOCAL;
 
 function deviceInfo() {
   const r = document.documentElement;
@@ -586,27 +600,22 @@ function deviceInfo() {
   return [os, STANDALONE ? '홈 화면 앱' : IN_APP ? '앱 안 브라우저' : '브라우저', `디자인 ${SKINS[r.dataset.skin]}`, r.dataset.mode === 'dark' ? '어둡게' : '밝게', `글자 ${Math.round(curFs() * 100)}%`, `앱 ${APP_VERSION}`].join(' · ');
 }
 
-function fbFields(kind, text, info) {
-  const f = S.church.feedback;
-  const p = new URLSearchParams({ [f.kind]: kind, [f.text]: text });
-  if (f.info && info) p.set(f.info, deviceInfo());
-  return p;
+/** 쓰는 칸 (설정 카드와 오늘 화면의 시트가 같이 쓴다) */
+function feedbackForm() {
+  return `
+    <p class="meta">이 앱은 우리 교회가 함께 쓰면서 조금씩 고쳐 가요. 불편했던 점, 있었으면 하는 것, 좋았던 것 무엇이든 편하게 적어 주세요. 모아서 고칠 수 있는 건 고치고, 바뀐 건 설정의 「최근 바뀐 것」에서 알려 드려요.</p>
+    <textarea class="note fb-text" data-act="fbText" rows="4" maxlength="1000" placeholder="예) 글자 크기 버튼이 더 컸으면 좋겠어요">${esc(S.fbText)}</textarea>
+    <button class="primary" data-act="fbSend">보내기</button>
+    <p class="hint">이름 없이 보내져요. 읽은 기록은 보내지 않고, 고치는 데 필요한 폰 종류·디자인·글자 크기만 함께 가요.</p>`;
 }
 
 function feedbackCard() {
-  if (!fbReady()) return '';
-  const direct = `${S.church.feedback.form.replace(/\?.*$/, '')}?usp=pp_url&${fbFields(S.fbKind, S.fbText, S.fbInfo)}`;
-  return `
-    <section class="card feedback">
-      <h3>의견 보내기</h3>
-      <p class="meta">불편한 점, 있었으면 하는 것, 좋았던 것 무엇이든 알려 주세요. 모아서 앱을 고쳐 나가요. <b>이름 없이</b> 보내지고, 읽은 기록은 보내지지 않아요.</p>
-      <div class="fb-kinds" role="group" aria-label="의견 종류">${FB_KINDS.map((k) => `<button class="${S.fbKind === k ? 'on' : ''}" data-act="fbKind" data-value="${k}" aria-pressed="${S.fbKind === k}">${k}</button>`).join('')}</div>
-      <textarea class="note fb-text" data-act="fbText" rows="4" maxlength="1000" placeholder="예) 글자 크기 버튼이 더 컸으면 좋겠어요">${esc(S.fbText)}</textarea>
-      ${S.church.feedback.info ? `<label class="fb-info"><input type="checkbox" data-act="fbInfo" ${S.fbInfo ? 'checked' : ''} /> 폰 종류·디자인·글자 크기도 같이 보내기 <small>고치는 데 도움이 돼요</small></label>` : ''}
-      <button class="primary" data-act="fbSend">보내기</button>
-      <p class="hint">잘 안 보내지면 <a href="${esc(direct)}" target="_blank" rel="noopener">설문지에서 직접 쓰기</a></p>
-    </section>`;
+  if (!fbShown()) return '';
+  return `<section class="card feedback"><h3>의견 보내기</h3>${feedbackForm()}</section>`;
 }
+
+/** 오늘 화면 맨 아래 — 눈에 띄지 않게 작은 글자 한 줄 */
+const feedbackLink = () => (fbShown() ? '<p class="fb-quiet"><button class="link" data-act="fbOpen">앱에 바라는 점이 있나요? 의견 보내기</button></p>' : '');
 
 function updatesCard() {
   const list = S.updates.slice(0, 4);
@@ -811,25 +820,24 @@ const swatch = (v) => `<span class="sw" data-skin="${v}" data-mode="${document.d
 
 function themePicker() {
   const cur = document.documentElement.dataset.skin;
-  const tab = S.themeTab ?? groupOf(cur);
-  const today = dateKey();
-  const group = SKIN_GROUPS.find((g) => g.name === tab) ?? SKIN_GROUPS[0];
-  const items = Object.entries(group.items).filter(([v]) => !EVENTS[v] || EVENTS[v].until >= today);
-  const isOn = (v) => (v === 'glass-liquid' ? cur.startsWith('glass-') : cur === v);
-  const shown = (v) => (v === 'glass-liquid' && cur.startsWith('glass-') ? cur : v); // 글래스 칸은 지금 고른 유리 색으로 보인다
-  const grid = items
-    .map(([v, name]) => `<button class="skin ${isOn(v) ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${isOn(v)}">${swatch(shown(v))}${esc(name)}${EVENTS[v] ? `<small>${EVENTS[v].note}</small>` : ''}</button>`)
-    .join('');
-  const glass = cur.startsWith('glass-') && group.name === '기본' ? `
-    <p class="seg-label">유리 색</p>
-    <div class="glass-colors" role="group" aria-label="유리 색">${Object.entries(GLASS_COLORS)
-      .map(([v, name]) => `<button class="${cur === v ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${name}</button>`).join('')}</div>` : '';
+  const curDesign = designOf(cur);
+  const tab = DESIGN_TABS.find((t) => t.name === (S.themeTab ?? curDesign.tab)) ?? DESIGN_TABS[0];
+  const cards = tab.designs.map((d) => {
+    const on = d === curDesign;
+    const look = on ? cur : designPick(d); // 고른 디자인은 지금 색으로, 나머지는 그 디자인에서 고를 색으로 보인다
+    const n = Object.keys(d.colors).length;
+    return `<button class="skin ${on ? 'on' : ''}" data-act="design" data-value="${esc(d.name)}" aria-pressed="${on}">${swatch(look)}${esc(d.name)}${n > 1 ? `<small>${n}가지 색</small>` : ''}</button>`;
+  }).join('');
+  const colors = Object.entries(curDesign.colors);
+  const colorRow = curDesign.tab === tab.name && colors.length > 1 ? `
+    <p class="seg-label">${esc(curDesign.name)} 색</p>
+    <div class="colors" style="--cols:${colors.length <= 5 ? colors.length : 3}" role="group" aria-label="${esc(curDesign.name)} 색">${colors
+      .map(([v, name]) => `<button class="${cur === v ? 'on' : ''}" data-act="skin" data-value="${v}" aria-pressed="${cur === v}">${swatch(v)}${esc(name)}</button>`).join('')}</div>` : '';
   return `
     <div class="fs-head"><p class="seg-label">디자인</p><span class="theme-cur">${esc(SKINS[cur])}</span></div>
-    <div class="theme-tabs" role="tablist">${SKIN_GROUPS.map((g) => `<button role="tab" class="${g.name === group.name ? 'on' : ''}" aria-selected="${g.name === group.name}" data-act="themeTab" data-value="${g.name}">${g.name}</button>`).join('')}</div>
-    <div class="skins" role="group" aria-label="${group.name}">${grid || '<p class="hint">다음 교회 행사 때 새 디자인이 찾아와요</p>'}</div>
-    ${group.name === '행사' ? '<p class="hint">교회 행사 때마다 새 디자인이 생겨요. 행사가 끝나면 목록에서 빠져요.</p>' : ''}
-    ${glass}
+    <div class="theme-tabs" role="tablist">${DESIGN_TABS.map((t) => `<button role="tab" class="${t === tab ? 'on' : ''}" aria-selected="${t === tab}" data-act="themeTab" data-value="${t.name}">${t.name}</button>`).join('')}</div>
+    <div class="skins" role="group" aria-label="${tab.name}">${cards}</div>
+    ${colorRow}
     <p class="seg-label" style="margin-top:16px">밝기 — 모든 디자인에 밝게·어둡게가 있어요</p>`;
 }
 
@@ -878,6 +886,10 @@ function closeSheet() {
 }
 
 function renderSheet() {
+  if (S.sheetDay === 'fb') {
+    $('.sheet-panel').innerHTML = `<div class="grip"></div><h2 id="sheet-title">의견 보내기</h2>${feedbackForm()}<button class="link close" data-close>닫기</button>`;
+    return;
+  }
   const d = day(S.sheetDay);
   const rec = S.recs.get(d.n);
   const state = dayState(d, rec);
@@ -1005,28 +1017,29 @@ const actions = {
     render();
   },
   skin(el) {
-    let v = el.dataset.value;
-    // 글래스 칸을 누르면 마지막으로 고른 유리 색으로
-    if (v === 'glass-liquid' && !el.closest('.glass-colors')) {
-      try { v = localStorage.getItem('glassColor') || v; } catch {}
-      if (!GLASS_COLORS[v]) v = 'glass-liquid';
-    }
-    if (v.startsWith('glass-')) try { localStorage.setItem('glassColor', v); } catch {}
+    const v = el.dataset.value;
+    try { localStorage.setItem(`color:${designOf(v).name}`, v); } catch {}
     setLook('skin', v);
     render();
   },
-  fbKind(el) {
-    S.fbKind = el.dataset.value;
+  design(el) {
+    const d = DESIGNS.find((x) => x.name === el.dataset.value);
+    if (d) setLook('skin', designPick(d));
     render();
+  },
+  fbOpen() {
+    openSheet('fb');
   },
   async fbSend(el) {
     const text = S.fbText.trim();
-    if (text.length < 2) { toast('의견을 적어 주세요'); $('.fb-text')?.focus(); return; }
+    if (text.length < 2) { toast('의견을 적어 주세요'); document.querySelector('.fb-text')?.focus(); return; }
+    if (!fbUrl()) { toast('시험판이라 아직 받는 곳이 연결되지 않았어요'); return; }
     el.disabled = true;
     try {
-      // 구글 설문지는 다른 사이트에서 보낸 결과를 읽을 수 없게 막아 둔다(no-cors) → 인터넷이 되면 보내진 것으로 본다
-      await fetch(S.church.feedback.form.replace(/\/viewform.*$/, '/formResponse'), { method: 'POST', mode: 'no-cors', body: fbFields(S.fbKind, text, S.fbInfo) });
+      // 앱스 스크립트는 다른 사이트에 답을 보여 주지 않는다(no-cors) → 인터넷이 되면 보내진 것으로 본다
+      await fetch(fbUrl(), { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ text, info: deviceInfo() }) });
       S.fbText = '';
+      if (S.sheetDay === 'fb') userCloseSheet();
       render();
       toast('보내 주셔서 고마워요 💌');
     } catch {
@@ -1125,7 +1138,6 @@ document.addEventListener('input', (e) => {
 document.addEventListener('change', async (e) => {
   const el = e.target;
   if (el.dataset.act === 'fs') { setFs(+el.value / 100); render(); return; }
-  if (el.dataset.act === 'fbInfo') { S.fbInfo = el.checked; return; }
   if (el.dataset.act === 'note') {
     if (await saveNote(el)) toast('남겼어요');
   }
