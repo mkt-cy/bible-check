@@ -129,3 +129,20 @@ node scripts/build-plan.mjs <reading-plan.md> <id> "<제목>" <연도> NT,OT   #
 2  Supabase 선택형 클라우드 백업·기기 간 동기화 (켜는 사람만)
 3  필요 시 Capacitor로 스토어 앱 → 알림·위젯
 ```
+
+## 의견 보내기 (구글 설문지)
+
+설정 탭의 「의견 보내기」는 교회 담당자의 구글 설문지로 바로 보낸다. 서버·로그인 없음, 이름·읽은 기록은 보내지 않는다.
+`data/church.json`의 `feedback`이 비어 있으면 카드가 숨겨진다.
+
+1. 구글 설문지 새로 만들기 → 질문 3개, **모두 '단답형' 또는 '장문형'** (객관식이면 앱이 보낸 글자가 보기와 정확히 같아야 해서 실패하기 쉬움)
+   - 종류 (단답형) · 의견 (장문형) · 폰 정보 (단답형)
+2. 설정: 이메일 수집 끄기, '응답 횟수 1회로 제한' 끄기 (로그인 필요해짐)
+3. ⋮ → '미리 채워진 링크 가져오기' → 칸마다 아무 글자 넣고 링크 복사 → 링크 속 `entry.숫자`가 각 질문 번호
+4. `data/church.json`
+   ```json
+   "feedback": { "form": "https://docs.google.com/forms/d/e/…/viewform", "kind": "entry.111", "text": "entry.222", "info": "entry.333" }
+   ```
+5. 응답 탭 → 스프레드시트 연결하면 시트에 쌓인다
+
+반영한 것은 `data/updates.json`에 한 줄 (`"fromFeedback": true`면 앱에 💌 표시). 앱 판을 올릴 때 `app.js`의 `APP_VERSION`과 `sw.js`의 `VERSION`을 같이 올린다.

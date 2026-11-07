@@ -3,6 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
+const APP_VERSION = 'v20'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -56,6 +57,10 @@ const S = {
   sermonId: null, // 지금 띄운 설교 영상
   qt: [], // data/qt.json — 매일성경 날짜별 QT 제목·본문 (매일 GitHub이 받아 온다)
   qtRecs: new Map(), // 'YYYY-MM-DD' → QT 체크 기록 (통독 기록과 따로, planId 'qt')
+  updates: [], // data/updates.json — 최근 바뀐 것 (의견으로 바뀐 건 fromFeedback)
+  fbKind: '불편해요', // 의견 보내기: 고른 종류
+  fbText: '', // 쓰던 의견 (다시 그려도 남게)
+  fbInfo: true, // 폰 정보 같이 보내기
   sermonsTried: false, // 설교 목록 첫 받기를 마쳤는지 (못 받았으면 '불러오는 중' 대신 안내)
   storage: { ok: true },
   lastExport: null,
@@ -127,6 +132,7 @@ async function boot() {
   ]);
   S.plan = plan;
   S.church = await fetch('data/church.json').then((r) => r.json()).catch(() => null);
+  fetch('data/updates.json').then((r) => r.json()).then((u) => { S.updates = Array.isArray(u) ? u : []; }).catch(() => {});
   // 설교 목록은 기다리지 않는다 — 받아지면 설교 화면만 다시 그린다
   loadQt().then((changed) => { if (changed && (location.hash || '#/') === '#/') render(); });
   loadSermons().finally(() => {
@@ -568,6 +574,50 @@ function viewPlan() {
   `;
 }
 
+// ── 의견 보내기 · 최근 바뀐 것 ──
+// 의견은 교회 담당자의 구글 설문지로 바로 간다 (data/church.json의 feedback). 설정이 없으면 카드를 숨긴다.
+// 보내는 것 = 고른 종류 + 쓴 글 + (원하면) 폰 종류·디자인·글자 크기·앱 판. 이름·읽은 기록은 보내지 않는다.
+const FB_KINDS = ['불편해요', '이런 게 있으면 좋겠어요', '좋았어요', '기타'];
+const fbReady = () => { const f = S.church?.feedback; return !!(f?.form && f.kind && f.text); };
+
+function deviceInfo() {
+  const r = document.documentElement;
+  const os = IS_IOS ? '아이폰' : /Android/i.test(UA) ? '안드로이드' : '기타';
+  return [os, STANDALONE ? '홈 화면 앱' : IN_APP ? '앱 안 브라우저' : '브라우저', `디자인 ${SKINS[r.dataset.skin]}`, r.dataset.mode === 'dark' ? '어둡게' : '밝게', `글자 ${Math.round(curFs() * 100)}%`, `앱 ${APP_VERSION}`].join(' · ');
+}
+
+function fbFields(kind, text, info) {
+  const f = S.church.feedback;
+  const p = new URLSearchParams({ [f.kind]: kind, [f.text]: text });
+  if (f.info && info) p.set(f.info, deviceInfo());
+  return p;
+}
+
+function feedbackCard() {
+  if (!fbReady()) return '';
+  const direct = `${S.church.feedback.form.replace(/\?.*$/, '')}?usp=pp_url&${fbFields(S.fbKind, S.fbText, S.fbInfo)}`;
+  return `
+    <section class="card feedback">
+      <h3>의견 보내기</h3>
+      <p class="meta">불편한 점, 있었으면 하는 것, 좋았던 것 무엇이든 알려 주세요. 모아서 앱을 고쳐 나가요. <b>이름 없이</b> 보내지고, 읽은 기록은 보내지지 않아요.</p>
+      <div class="fb-kinds" role="group" aria-label="의견 종류">${FB_KINDS.map((k) => `<button class="${S.fbKind === k ? 'on' : ''}" data-act="fbKind" data-value="${k}" aria-pressed="${S.fbKind === k}">${k}</button>`).join('')}</div>
+      <textarea class="note fb-text" data-act="fbText" rows="4" maxlength="1000" placeholder="예) 글자 크기 버튼이 더 컸으면 좋겠어요">${esc(S.fbText)}</textarea>
+      ${S.church.feedback.info ? `<label class="fb-info"><input type="checkbox" data-act="fbInfo" ${S.fbInfo ? 'checked' : ''} /> 폰 종류·디자인·글자 크기도 같이 보내기 <small>고치는 데 도움이 돼요</small></label>` : ''}
+      <button class="primary" data-act="fbSend">보내기</button>
+      <p class="hint">잘 안 보내지면 <a href="${esc(direct)}" target="_blank" rel="noopener">설문지에서 직접 쓰기</a></p>
+    </section>`;
+}
+
+function updatesCard() {
+  const list = S.updates.slice(0, 4);
+  if (!list.length) return '';
+  return `
+    <section class="card updates">
+      <h3>최근 바뀐 것</h3>
+      <ul>${list.map((u) => `<li><span class="u-date">${esc(shortDate(u.date))}</span><span>${esc(u.text)}${u.fromFeedback ? '<small>💌 보내 주신 의견으로 바뀌었어요</small>' : ''}</span></li>`).join('')}</ul>
+    </section>`;
+}
+
 function installGuide() {
   if (STANDALONE) return '';
   let how;
@@ -661,6 +711,9 @@ function viewSettings() {
       ${modeOptions()}
       <p class="hint">통독 기간이 끝난 뒤에는 이어 읽기만 보여요.</p>
     </section>
+
+    ${feedbackCard()}
+    ${updatesCard()}
 
     <section class="card">
       <h3>기록 백업</h3>
@@ -962,6 +1015,25 @@ const actions = {
     setLook('skin', v);
     render();
   },
+  fbKind(el) {
+    S.fbKind = el.dataset.value;
+    render();
+  },
+  async fbSend(el) {
+    const text = S.fbText.trim();
+    if (text.length < 2) { toast('의견을 적어 주세요'); $('.fb-text')?.focus(); return; }
+    el.disabled = true;
+    try {
+      // 구글 설문지는 다른 사이트에서 보낸 결과를 읽을 수 없게 막아 둔다(no-cors) → 인터넷이 되면 보내진 것으로 본다
+      await fetch(S.church.feedback.form.replace(/\/viewform.*$/, '/formResponse'), { method: 'POST', mode: 'no-cors', body: fbFields(S.fbKind, text, S.fbInfo) });
+      S.fbText = '';
+      render();
+      toast('보내 주셔서 고마워요 💌');
+    } catch {
+      el.disabled = false;
+      toast('인터넷에 연결된 뒤 다시 보내 주세요. 쓴 글은 남아 있어요');
+    }
+  },
   themeTab(el) {
     S.themeTab = el.dataset.value;
     render();
@@ -1047,11 +1119,13 @@ document.addEventListener('click', async (e) => {
 // 글자 크기 밀대: 끄는 동안 바로 보이고, 손을 떼면(change) 저장
 document.addEventListener('input', (e) => {
   if (e.target.dataset.act === 'fs') setFs(+e.target.value / 100, false);
+  if (e.target.dataset.act === 'fbText') S.fbText = e.target.value;
 });
 
 document.addEventListener('change', async (e) => {
   const el = e.target;
   if (el.dataset.act === 'fs') { setFs(+el.value / 100); render(); return; }
+  if (el.dataset.act === 'fbInfo') { S.fbInfo = el.checked; return; }
   if (el.dataset.act === 'note') {
     if (await saveNote(el)) toast('남겼어요');
   }

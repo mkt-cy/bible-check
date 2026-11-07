@@ -388,3 +388,19 @@ body.onboarding #app { padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
 @keyframes pop { 30% { transform: scale(1.05); } 60% { transform: scale(.98); } }
 @keyframes glow { from { box-shadow: 0 0 0 0 var(--confetti-3); } to { box-shadow: 0 0 0 18px transparent; } }
 @media (prefers-reduced-motion: reduce) { .primary.pop { animation: none; } }
+
+/* 의견 보내기 · 최근 바뀐 것 */
+.fb-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.fb-kinds button { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--field); font-weight: 600; font-size: calc(14px * var(--fs)); }
+.fb-kinds button.on { border-color: var(--green); background: var(--green-soft); color: var(--green-ink); }
+.fb-text { min-height: 110px; resize: vertical; line-height: 1.5; font-family: inherit; }
+.fb-info { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 12px 2px 4px; font-size: calc(14px * var(--fs)); }
+.fb-info input { width: 20px; height: 20px; accent-color: var(--green); }
+.fb-info small { color: var(--muted); font-size: calc(12px * var(--fs)); }
+.feedback .primary { margin-top: 12px; }
+.feedback .primary:disabled { opacity: .6; }
+.updates ul { margin: 0; padding: 0; list-style: none; }
+.updates li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: calc(15px * var(--fs)); }
+.updates li:first-child { border-top: 0; padding-top: 0; }
+.updates .u-date { flex: none; width: 3.6em; color: var(--muted); font-size: calc(13px * var(--fs)); padding-top: 2px; }
+.updates small { display: block; margin-top: 2px; color: var(--accent-ink); font-size: calc(13px * var(--fs)); }
