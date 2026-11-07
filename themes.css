@@ -239,20 +239,6 @@ body::before { content: ""; position: fixed; inset: -10vh 0; z-index: -1; backgr
   color-scheme: dark;
 }
 
-/* 아기자기 · 레몬소다 */
-[data-skin="cute-lemon"] {
-  --bg: #fffbe0; --card: #ffffff; --ink: #3d3a1a; --muted: #6e6942;
-  --green: #2bb3a3; --green-ink: #0f7a6b; --accent: #f5c400; --accent-ink: #7d6000;
-  --on-fill: #062e29; --primary: #0f7a6b; --on-primary: #ffffff;
-  --deco: "🍋"; --display: "Jua", var(--font); --font-load: "Jua";
-  color-scheme: light;
-}
-[data-skin="cute-lemon"][data-mode="dark"] {
-  --bg: #1d2420; --card: #26302b; --ink: #fdf8d8; --muted: #c1bd96;
-  --green: #4fd1c0; --green-ink: #6fe0d1; --accent: #ffd84a; --accent-ink: #ffe27a;
-  --on-fill: #0b2522; --primary: #ffd84a; --on-primary: #2a2400;
-  color-scheme: dark;
-}
 
 /* 아기자기 · 구름사탕 */
 [data-skin="cute-cloud"] {

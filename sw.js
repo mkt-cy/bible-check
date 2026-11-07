@@ -1,5 +1,5 @@
 // 오프라인용 캐시. 앱 파일을 고치면 VERSION을 올린다 → 다음 실행 때 새 파일로 교체
-const VERSION = 'v23';
+const VERSION = 'v24';
 const FONTS = 'fonts'; // 테마 글꼴(구글) — 앱을 업데이트해도 지우지 않는다
 const SHELL = [
   './', 'index.html', 'style.css', 'themes.css', 'app.js', 'manifest.webmanifest',
@@ -28,7 +28,7 @@ self.addEventListener('fetch', (e) => {
   // 테마 글꼴: 한 번 받으면 저장해 두고 인터넷 없이도 쓴다
   if (/^https:\/\/fonts\.(googleapis|gstatic)\.com\//.test(e.request.url)) {
     e.respondWith(caches.open(FONTS).then((c) => c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-      if (res.ok || res.type === 'opaque') c.put(e.request, res.clone());
+      if (res.ok) c.put(e.request, res.clone()); // 내용을 못 보는(불투명) 응답은 저장하지 않는다 (폰 저장 공간을 크게 잡아먹음)
       return res;
     }))));
     return;

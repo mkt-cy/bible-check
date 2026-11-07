@@ -3,7 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
-const APP_VERSION = 'v23'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
+const APP_VERSION = 'v24'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -20,7 +20,7 @@ const DESIGN_TABS = [
     { name: '리퀴드 글래스', colors: { 'glass-liquid': '블루', 'glass-sakura': '벚꽃', 'glass-aurora': '오로라', 'glass-dusk': '어스름', 'glass-peach': '살구' } },
   ] },
   { name: '아기자기', designs: [
-    { name: '말랑', colors: { 'cute-strawberry': '딸기', 'cute-lemon': '레몬', 'cute-cloud': '구름', 'cute-peach': '복숭아', 'cute-clover': '클로버', 'cute-honey': '꿀곰' } },
+    { name: '말랑', colors: { 'cute-strawberry': '딸기', 'cute-cloud': '구름', 'cute-peach': '복숭아', 'cute-clover': '클로버', 'cute-honey': '꿀곰' } },
     { name: '스티커북', colors: { 'sticker-book': '하늘', 'sticker-gingham': '깅엄', 'sticker-mint': '민트', 'sticker-lilac': '라일락' } },
     { name: '네컷 구름', colors: { 'cute-fourcut': '분홍', 'cute-fourcut-sky': '하늘', 'cute-fourcut-mint': '민트', 'cute-fourcut-lilac': '보라' } },
   ] },
@@ -44,7 +44,7 @@ function designPick(d) {
   try { id = localStorage.getItem(`color:${d.name}`); } catch {}
   return d.colors[id] ? id : Object.keys(d.colors)[0];
 }
-const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid', 'cute-choco': 'cute-honey', 'cute-christmas': 'classic', 'cute-thanks': 'classic' }; // 사본 시험판에서 쓰던 이름
+const OLD_SKIN = { founder: 'sharp-founder', glass: 'glass-liquid', 'cute-choco': 'cute-honey', 'cute-christmas': 'classic', 'cute-thanks': 'classic', 'cute-lemon': 'cute-strawberry' }; // 사본 시험판에서 쓰던 이름
 const FS = { min: 0.85, max: 1.6, step: 0.05 }; // 글자 크기 배율 범위 (85% ~ 160%, 5%씩)
 
 const UA = navigator.userAgent;
@@ -85,7 +85,9 @@ const $ = (sel) => document.querySelector(sel);
 function applyLook() {
   const r = document.documentElement;
   const skin = OLD_SKIN[r.dataset.skin] ?? r.dataset.skin;
-  r.dataset.skin = SKINS[skin] ? skin : 'classic';
+  const fixed = SKINS[skin] ? skin : 'classic';
+  if (fixed !== r.dataset.skin) try { localStorage.setItem('skin', fixed); } catch {}
+  r.dataset.skin = fixed;
   r.dataset.theme ||= 'auto';
   const dark = r.dataset.theme === 'dark' || (r.dataset.theme === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   r.dataset.mode = dark ? 'dark' : 'light';
@@ -102,7 +104,7 @@ function setLook(key, value) {
 /** 테마가 쓰는 구글 글꼴을 그때그때 불러온다 (안 받아져도 기본 글꼴로 보인다). 한 번 받은 건 sw가 저장 */
 function loadFont(family) {
   if (!family || document.querySelector(`link[data-font="${family}"]`)) return;
-  const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', href: `https://fonts.googleapis.com/css2?family=${family}&display=swap` });
+  const link = Object.assign(document.createElement('link'), { rel: 'stylesheet', crossOrigin: 'anonymous', href: `https://fonts.googleapis.com/css2?family=${family}&display=swap` });
   link.dataset.font = family;
   document.head.append(link);
 }
@@ -1176,14 +1178,15 @@ document.addEventListener('pointermove', (e) => {
   drag.panel.style.transform = `translateY(${drag.dy}px)`;
   drag.backdrop.style.opacity = String(Math.max(0.2, 1 - drag.dy / 400));
 });
-function endDrag() {
+function endDrag(e) {
   if (!drag) return;
   const { panel, backdrop, dy, t0 } = drag;
+  const cancelled = e?.type === 'pointercancel'; // 폰이 제스처를 가로챔 → 닫지 않고 제자리로
   drag = null;
   const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5; // 휙 내리면 짧게 끌어도 닫힌다
   const reset = () => { panel.style.transition = ''; panel.style.transform = ''; backdrop.style.transition = ''; backdrop.style.opacity = ''; };
   const quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (dy < 6 || dy > 90 || fast) {
+  if (!cancelled && (dy < 6 || dy > 90 || fast)) {
     // 누름(거의 안 움직임) 또는 충분히 내림 → 아래로 내려가며 닫기
     panel.style.transition = backdrop.style.transition = quiet ? 'none' : 'transform .2s ease-in, opacity .2s ease-in';
     panel.style.transform = 'translateY(100%)';
