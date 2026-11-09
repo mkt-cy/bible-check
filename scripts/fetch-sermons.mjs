@@ -18,11 +18,31 @@ const known = new Map((prev ? JSON.parse(prev).videos : []).map((v) => [v.id, v]
 
 // 재생목록 + 채널 업로드 목록을 같이 본다: 교회가 영상을 올리고 재생목록엔 늦게 넣는 주가 있다 (26.11.01.)
 // 채널 쪽은 제목에 sermons.match("일요경건회")가 들어간 영상만
+// RSS가 막히면(26.11.04~ 계속 404) 재생목록·채널 동영상 페이지의 ytInitialData에서 읽어 RSS 모양으로 바꿔 돌려준다
+const xmlEsc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const page = async (q) => {
+  const [k, id] = q.split('=');
+  const url = k === 'playlist_id' ? `https://www.youtube.com/playlist?list=${id}` : `https://www.youtube.com/channel/${id}/videos`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'ko' } }).catch(() => null);
+  const json = res?.ok && (await res.text()).match(/var ytInitialData = (\{.*?\});<\/script>/s)?.[1];
+  if (!json) return null;
+  const found = [];
+  const walk = (o) => {
+    if (!o || typeof o !== 'object') return;
+    const l = o.lockupViewModel;
+    if (l?.contentType === 'LOCKUP_CONTENT_TYPE_VIDEO' && l.contentId) found.push([l.contentId, l.metadata?.lockupMetadataViewModel?.title?.content ?? '']);
+    for (const v of Object.values(o)) walk(v);
+  };
+  walk(JSON.parse(json));
+  if (!found.length) return null;
+  console.log(`RSS 대신 페이지에서 ${found.length}개 ${q}`);
+  return found.map(([v, t]) => `<entry><yt:videoId>${v}</yt:videoId><title>${xmlEsc(t)}</title></entry>`).join('\n');
+};
 const feed = async (q) => {
   const res = await fetch(`https://www.youtube.com/feeds/videos.xml?${q}`).catch((e) => ({ ok: false, status: e.message }));
   if (res.ok) return res.text();
   console.log(`목록을 못 받음 ${q} (${res.status})`);
-  return null;
+  return page(q);
 };
 const xmls = await Promise.all([feed(`playlist_id=${list}`), church.sermons.channel ? feed(`channel_id=${church.sermons.channel}`) : '']);
 if (xmls.some((x) => x === null)) {
