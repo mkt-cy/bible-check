@@ -426,7 +426,7 @@ function viewHome() {
     if (held && next && next.n !== loc.day.n) cards += dayRow(next, `다음 이어 읽기 · ${shortDate(next.date)} 분량`);
     cards += dayRow(loc.day, '오늘 말씀');
   } else {
-    cards += dayCard(loc.day, S.church?.reading && today >= S.church.reading.start ? '오늘 말씀 · 6개월 통독' : '오늘 말씀');
+    cards += dayCard(loc.day, S.church?.reading && today >= S.church.reading.start ? '오늘 말씀 · 선한길 6개월 통독' : '오늘 말씀');
     if (missed && mode === 'spread') cards += extraCard(today);
   }
 
@@ -444,8 +444,8 @@ function viewHome() {
     </header>
     ${notices()}
     ${readingCard(today)}
-    ${cards}
     ${qtCard(today)}
+    ${cards}
     <section class="card week-strip" aria-label="이번 주">
       <h3>이번 주</h3>
       <div class="strip">${week.days.map((d) => stripCell(d, today)).join('')}</div>
