@@ -3,7 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
-const APP_VERSION = 'v27'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
+const APP_VERSION = 'v28'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -443,8 +443,8 @@ function viewHome() {
       <p class="sub">${sub}</p>
     </header>
     ${notices()}
-    ${readingCard(today)}
     ${qtCard(today)}
+    ${readingCard(today)}
     ${cards}
     <section class="card week-strip" aria-label="이번 주">
       <h3>이번 주</h3>
