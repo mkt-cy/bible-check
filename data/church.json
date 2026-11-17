@@ -6,6 +6,10 @@
     "channel": "UCa-Ns5d9ko_mZwChAYEf85w",
     "match": "일요경건회"
   },
+  "reading": {
+    "name": "매일성경 성경읽기",
+    "start": "2026-11-16"
+  },
   "qt": {
     "name": "매일성경",
     "edition": "QT1",

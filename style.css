@@ -233,6 +233,12 @@ button { cursor: pointer; }
 .warn { padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--warn-ink); font-size: calc(14px * var(--fs)); }
 .foot { text-align: center; color: var(--muted); font-size: calc(12px * var(--fs)); }
 
+/* 교회 성경읽기 (QT 카드와 같은 꼴) */
+.card.reading .kicker { color: var(--accent-ink); }
+.card.reading h2 { margin-bottom: 12px; }
+.card.reading.done { border-color: var(--done-line); }
+.read-dot { margin-right: 2px; }
+
 /* QT */
 .card.qt .kicker { color: var(--accent-ink); }
 .card.qt h2 { margin-bottom: 8px; }

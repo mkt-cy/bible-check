@@ -3,7 +3,7 @@ import { newRecord, toggleChapter, setDayDone, setNote, dayState, doneCount, nex
 import * as store from './lib/store.js';
 
 const DEFAULT_PLAN = 'goodway-2026h2';
-const APP_VERSION = 'v25'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
+const APP_VERSION = 'v26'; // sw.js의 VERSION과 같이 올린다 (의견에 '어느 판에서 생긴 일인지' 붙이려고)
 const MODES = {
   oldest: { name: '밀린 것부터 차근차근', desc: '이어 읽을 곳부터 순서대로 읽어요' },
   today: { name: '오늘 말씀부터', desc: '지난 말씀은 전체 표에서 생각날 때 채워요' },
@@ -70,6 +70,8 @@ const S = {
   sermonId: null, // 지금 띄운 설교 영상
   qt: [], // data/qt.json — 매일성경 날짜별 QT 제목·본문 (매일 GitHub이 받아 온다)
   qtRecs: new Map(), // 'YYYY-MM-DD' → QT 체크 기록 (통독 기록과 따로, planId 'qt')
+  reading: [], // data/reading.json — 교회 성경읽기 날짜별 분량 (매주 단톡방 글을 붙여 넣어 쌓는다)
+  readRecs: new Map(), // 'YYYY-MM-DD' → 교회 성경읽기 체크 기록 (planId 'reading')
   updates: [], // data/updates.json — 최근 바뀐 것 (의견으로 바뀐 건 fromFeedback)
   fbText: '', // 쓰던 의견 (다시 그려도 남게)
   sermonsTried: false, // 설교 목록 첫 받기를 마쳤는지 (못 받았으면 '불러오는 중' 대신 안내)
@@ -148,6 +150,7 @@ async function boot() {
   fetch('data/updates.json').then((r) => r.json()).then((u) => { S.updates = Array.isArray(u) ? u : []; }).catch(() => {});
   // 설교 목록은 기다리지 않는다 — 받아지면 설교 화면만 다시 그린다
   loadQt().then((changed) => { if (changed && (location.hash || '#/') === '#/') render(); });
+  await loadReading(); // 오늘 화면 맨 위 카드라 기다린다 (작은 파일, 오프라인이면 저장본)
   loadSermons().finally(() => {
     S.sermonsTried = true;
     if (location.hash === '#/sermons' && !$('.player')) { $('#app').innerHTML = ''; render(); }
@@ -193,6 +196,52 @@ async function boot() {
 async function loadRecords() {
   S.recs = new Map((await store.listRecords(S.plan.id)).map((r) => [r.day, r]));
   S.qtRecs = new Map((await store.listRecords(QT_PLAN)).map((r) => [qtDate(r.day), r]));
+  S.readRecs = new Map((await store.listRecords(READ_PLAN)).map((r) => [qtDate(r.day), r]));
+}
+
+// ── 교회 성경읽기 — 교회가 매주 올리는 날짜별 분량. 통독표와 따로 체크한다 (planId 'reading', day = 20261117 꼴) ──
+// 통독(6개월 표) 기록은 그대로 두고 옆에 같이 띄운다. 분량은 scripts/add-reading.mjs로 data/reading.json에 쌓는다.
+const READ_PLAN = 'reading';
+const readDone = (date) => !!S.readRecs.get(date)?.chapters?.READ;
+
+async function loadReading() {
+  if (!S.church?.reading) return false;
+  const days = (await fetch('data/reading.json').then((r) => r.json()).catch(() => null))?.days;
+  if (!days || JSON.stringify(days) === JSON.stringify(S.reading)) return false;
+  S.reading = days;
+  return true;
+}
+
+const readButton = (date) => {
+  const done = readDone(date);
+  return `<button class="primary ${done ? 'is-done' : ''}" data-act="reading" data-date="${date}">${done ? '✓ 다 읽었어요' : '다 읽었어요'}</button>`;
+};
+
+function readingCard(today) {
+  const r = S.church?.reading;
+  if (!r || today < r.start) return '';
+  const d = S.reading.find((x) => x.date === today);
+  const done = readDone(today);
+  const last = S.reading.at(-1);
+  return `
+    <section class="card reading ${done ? 'done' : ''}">
+      <p class="kicker">오늘 ${esc(r.name)}</p>
+      ${d
+        ? `<h2>${esc(d.passage)}</h2>${readButton(today)}`
+        : `<h2>이번 주 분량이 아직 안 올라왔어요</h2><p class="meta">${last && last.date < today ? `마지막 분량: ${shortDate(last.date)} ${esc(last.passage)}` : '교회에서 올라오면 여기에 보여요.'}</p>`}
+    </section>`;
+}
+
+/** 날짜 창 아래쪽 교회 성경읽기 — 지난 날을 나중에 체크하거나 앞날 분량을 미리 본다 */
+function readingSheetBlock(date) {
+  const r = S.church?.reading;
+  if (!r || date < r.start) return '';
+  const d = S.reading.find((x) => x.date === date);
+  return `
+    <section class="sheet-qt sheet-reading">
+      <p class="kicker">${esc(r.name)}</p>
+      ${d ? `<h3>${esc(d.passage)}</h3>${readButton(date)}` : '<p class="meta">이 날 분량은 아직 없어요.</p>'}
+    </section>`;
 }
 
 // ── QT (매일성경) — 통독과 따로 체크한다. 기록은 통독과 같은 저장소에 planId 'qt', day = 20261101 꼴 ──
@@ -269,8 +318,8 @@ async function refresh() {
   S.lastDate = dateKey();
   render();
   // 설교 목록은 화면을 먼저 그린 뒤 뒤에서 받는다 (느린 데이터에서도 체크 화면이 기다리지 않게)
-  const [qtChanged, sermonsChanged] = await Promise.all([loadQt(), loadSermons()]);
-  if (qtChanged || (sermonsChanged && location.hash === '#/sermons')) render();
+  const [qtChanged, sermonsChanged, readChanged] = await Promise.all([loadQt(), loadSermons(), loadReading()]);
+  if (qtChanged || readChanged || (sermonsChanged && location.hash === '#/sermons')) render();
 }
 
 /** 설교 목록 다시 받기 — 앱을 켜 둔 채 일요일 밤을 넘겨도, 다시 열면 새 설교가 보이게 */
@@ -377,7 +426,7 @@ function viewHome() {
     if (held && next && next.n !== loc.day.n) cards += dayRow(next, `다음 이어 읽기 · ${shortDate(next.date)} 분량`);
     cards += dayRow(loc.day, '오늘 말씀');
   } else {
-    cards += dayCard(loc.day, '오늘 말씀');
+    cards += dayCard(loc.day, S.church?.reading && today >= S.church.reading.start ? '오늘 말씀 · 6개월 통독' : '오늘 말씀');
     if (missed && mode === 'spread') cards += extraCard(today);
   }
 
@@ -394,6 +443,7 @@ function viewHome() {
       <p class="sub">${sub}</p>
     </header>
     ${notices()}
+    ${readingCard(today)}
     ${cards}
     ${qtCard(today)}
     <section class="card week-strip" aria-label="이번 주">
@@ -550,7 +600,7 @@ function stripCell(d, today) {
   const cls = [state, d.date === today ? 'today' : '', d.date > today ? 'future' : ''].join(' ');
   return `
     <button class="cell ${cls}" data-act="open" data-n="${d.n}" aria-label="${shortDate(d.date)} ${label(d)} ${state === 'done' ? '읽음' : ''}">
-      <span class="wd">${weekdayOf(d.date)}</span><span class="dt">${shortDate(d.date)}</span><span class="st">${ICON[state] || '·'}</span>${qtDone(d.date) ? '<span class="qt-dot" title="QT">QT</span>' : ''}
+      <span class="wd">${weekdayOf(d.date)}</span><span class="dt">${shortDate(d.date)}</span><span class="st">${ICON[state] || '·'}</span>${readDone(d.date) ? '<span class="qt-dot read-dot" title="성경읽기">읽</span>' : ''}${qtDone(d.date) ? '<span class="qt-dot" title="QT">QT</span>' : ''}
     </button>`;
 }
 
@@ -905,6 +955,7 @@ function renderSheet() {
     <button class="primary ${state === 'done' ? 'is-done' : ''}" data-act="day" data-n="${d.n}">${state === 'done' ? '✓ 다 읽었어요' : '다 읽었어요'}</button>
     ${state !== 'none' ? noteField(d.n, rec.note) : ''}
     ${fillable ? `<button class="link fill" data-act="fill" data-n="${d.n}">첫날부터 이 날까지 모두 읽었어요</button>` : ''}
+    ${readingSheetBlock(d.date)}
     ${qtSheetBlock(d.date)}
     <button class="link close" data-close>닫기</button>`;
 }
@@ -935,6 +986,25 @@ function flushNote() {
 // ── 동작 ──
 
 const actions = {
+  async reading(el) {
+    const date = el.dataset.date;
+    const now = new Date();
+    try {
+      const [saved] = await store.update(READ_PLAN, [{
+        day: qtDay(date),
+        fn: (cur) => {
+          const rec = cur ?? newRecord(READ_PLAN, qtDay(date));
+          const chapters = rec.chapters.READ ? {} : { READ: dateKey() };
+          return { ...rec, chapters, readOn: chapters.READ ?? null, updatedAt: now.toISOString() };
+        },
+      }]);
+      S.readRecs.set(date, saved);
+      render();
+      if (readDone(date)) $('.card.reading .primary')?.classList.add('pop');
+    } catch {
+      toast('저장되지 않았어요. 다시 눌러 주세요.');
+    }
+  },
   async qt(el) {
     const date = el.dataset.date;
     const now = new Date();
