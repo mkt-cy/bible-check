@@ -77,6 +77,450 @@
      "to": 3
     }
    ]
+  },
+  {
+   "date": "2026-11-23",
+   "passage": "고린도전서 4-6장",
+   "ranges": [
+    {
+     "book": "1CO",
+     "from": 4,
+     "to": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-11-24",
+   "passage": "고린도전서 7-9장",
+   "ranges": [
+    {
+     "book": "1CO",
+     "from": 7,
+     "to": 9
+    }
+   ]
+  },
+  {
+   "date": "2026-11-25",
+   "passage": "고린도전서 10-12장",
+   "ranges": [
+    {
+     "book": "1CO",
+     "from": 10,
+     "to": 12
+    }
+   ]
+  },
+  {
+   "date": "2026-11-26",
+   "passage": "고린도전서 13-16장",
+   "ranges": [
+    {
+     "book": "1CO",
+     "from": 13,
+     "to": 16
+    }
+   ]
+  },
+  {
+   "date": "2026-11-27",
+   "passage": "고린도후서 1-3장",
+   "ranges": [
+    {
+     "book": "2CO",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-11-28",
+   "passage": "고린도후서 4-6장",
+   "ranges": [
+    {
+     "book": "2CO",
+     "from": 4,
+     "to": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-11-29",
+   "passage": "고린도후서 7-9장",
+   "ranges": [
+    {
+     "book": "2CO",
+     "from": 7,
+     "to": 9
+    }
+   ]
+  },
+  {
+   "date": "2026-11-30",
+   "passage": "고린도후서 10-13장",
+   "ranges": [
+    {
+     "book": "2CO",
+     "from": 10,
+     "to": 13
+    }
+   ]
+  },
+  {
+   "date": "2026-12-01",
+   "passage": "갈라디아서 1-3장",
+   "ranges": [
+    {
+     "book": "GAL",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-02",
+   "passage": "갈라디아서 4-6장",
+   "ranges": [
+    {
+     "book": "GAL",
+     "from": 4,
+     "to": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-12-03",
+   "passage": "에베소서 1-3장",
+   "ranges": [
+    {
+     "book": "EPH",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-04",
+   "passage": "에베소서 4-6장",
+   "ranges": [
+    {
+     "book": "EPH",
+     "from": 4,
+     "to": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-12-05",
+   "passage": "빌립보서 1-4장",
+   "ranges": [
+    {
+     "book": "PHP",
+     "from": 1,
+     "to": 4
+    }
+   ]
+  },
+  {
+   "date": "2026-12-06",
+   "passage": "골로새서 1-4장",
+   "ranges": [
+    {
+     "book": "COL",
+     "from": 1,
+     "to": 4
+    }
+   ]
+  },
+  {
+   "date": "2026-12-07",
+   "passage": "데살로니가전서 1-5장",
+   "ranges": [
+    {
+     "book": "1TH",
+     "from": 1,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-12-08",
+   "passage": "데살로니가후서 1-3장",
+   "ranges": [
+    {
+     "book": "2TH",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-09",
+   "passage": "디모데전서 1-3장",
+   "ranges": [
+    {
+     "book": "1TI",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-10",
+   "passage": "디모데전서 4-6장",
+   "ranges": [
+    {
+     "book": "1TI",
+     "from": 4,
+     "to": 6
+    }
+   ]
+  },
+  {
+   "date": "2026-12-11",
+   "passage": "디모데후서 1-4장",
+   "ranges": [
+    {
+     "book": "2TI",
+     "from": 1,
+     "to": 4
+    }
+   ]
+  },
+  {
+   "date": "2026-12-12",
+   "passage": "디도서 1-3장, 빌레몬서 1장",
+   "ranges": [
+    {
+     "book": "TIT",
+     "from": 1,
+     "to": 3
+    },
+    {
+     "book": "PHM",
+     "from": 1,
+     "to": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-12-13",
+   "passage": "히브리서 1-2장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 1,
+     "to": 2
+    }
+   ]
+  },
+  {
+   "date": "2026-12-14",
+   "passage": "히브리서 3-4장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 3,
+     "to": 4
+    }
+   ]
+  },
+  {
+   "date": "2026-12-15",
+   "passage": "히브리서 5-7장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 5,
+     "to": 7
+    }
+   ]
+  },
+  {
+   "date": "2026-12-16",
+   "passage": "히브리서 8-10장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 8,
+     "to": 10
+    }
+   ]
+  },
+  {
+   "date": "2026-12-17",
+   "passage": "히브리서 11장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 11,
+     "to": 11
+    }
+   ]
+  },
+  {
+   "date": "2026-12-18",
+   "passage": "히브리서 12-13장",
+   "ranges": [
+    {
+     "book": "HEB",
+     "from": 12,
+     "to": 13
+    }
+   ]
+  },
+  {
+   "date": "2026-12-19",
+   "passage": "야고보서 1-5장",
+   "ranges": [
+    {
+     "book": "JAS",
+     "from": 1,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-12-20",
+   "passage": "베드로전서 1-5장",
+   "ranges": [
+    {
+     "book": "1PE",
+     "from": 1,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-12-21",
+   "passage": "베드로후서 1-3장",
+   "ranges": [
+    {
+     "book": "2PE",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-22",
+   "passage": "요한일서 1-5장",
+   "ranges": [
+    {
+     "book": "1JN",
+     "from": 1,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-12-23",
+   "passage": "요한이서·요한삼서·유다서",
+   "ranges": [
+    {
+     "book": "2JN",
+     "from": 1,
+     "to": 1
+    },
+    {
+     "book": "3JN",
+     "from": 1,
+     "to": 1
+    },
+    {
+     "book": "JUD",
+     "from": 1,
+     "to": 1
+    }
+   ]
+  },
+  {
+   "date": "2026-12-24",
+   "passage": "요한계시록 1-3장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 1,
+     "to": 3
+    }
+   ]
+  },
+  {
+   "date": "2026-12-25",
+   "passage": "요한계시록 4-5장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 4,
+     "to": 5
+    }
+   ]
+  },
+  {
+   "date": "2026-12-26",
+   "passage": "요한계시록 6-9장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 6,
+     "to": 9
+    }
+   ]
+  },
+  {
+   "date": "2026-12-27",
+   "passage": "요한계시록 10-13장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 10,
+     "to": 13
+    }
+   ]
+  },
+  {
+   "date": "2026-12-28",
+   "passage": "요한계시록 14-16장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 14,
+     "to": 16
+    }
+   ]
+  },
+  {
+   "date": "2026-12-29",
+   "passage": "요한계시록 17-18장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 17,
+     "to": 18
+    }
+   ]
+  },
+  {
+   "date": "2026-12-30",
+   "passage": "요한계시록 19-20장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 19,
+     "to": 20
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "passage": "요한계시록 21-22장",
+   "ranges": [
+    {
+     "book": "REV",
+     "from": 21,
+     "to": 22
+    }
+   ]
   }
  ]
 }

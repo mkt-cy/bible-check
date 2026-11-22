@@ -28,13 +28,22 @@ export function parsePassage(s) {
       return [{ book: a.code, from: +cross[2], to: a.chapters }, { book: b.code, from: 1, to: +cross[4] }];
     }
   }
-  const b = book(t);
-  if (!b) return null;
-  const m = t.slice(b.name.length).match(/^\s*(\d+)\s*(?:[장편]?\s*[-~]\s*(\d+))?\s*[장편]/);
-  if (!m) return null;
-  const from = +m[1]; const to = +(m[2] ?? m[1]);
-  if (from < 1 || to > b.chapters || from > to) return null;
-  return [{ book: b.code, from, to }];
+  // 한 권 또는 여러 권: "로마서 4-5장" / "디도서 1-3장, 빌레몬서 1장" / "요한이서 요한삼서 유다서"(1장짜리 책은 장 생략 가능)
+  const out = [];
+  let rest = t;
+  while ((rest = rest.replace(/^[\s,·]+/, ''))) {
+    const b = book(rest);
+    if (!b) return null;
+    rest = rest.slice(b.name.length);
+    const m = rest.match(/^\s*(\d+)\s*(?:[장편]?\s*[-~]\s*(\d+))?\s*[장편]?/);
+    let from; let to;
+    if (m) { from = +m[1]; to = +(m[2] ?? m[1]); rest = rest.slice(m[0].length); }
+    else if (b.chapters === 1) { from = 1; to = 1; }
+    else return null;
+    if (from < 1 || to > b.chapters || from > to) return null;
+    out.push({ book: b.code, from, to });
+  }
+  return out.length ? out : null;
 }
 
 const now = new Date(Date.now() + 9 * 3600000); // 한국 시각
